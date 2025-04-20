@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "554265067111",
+    "project_id": "podsy-bd462",
+    "storage_bucket": "podsy-bd462.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:554265067111:android:ff2209b087817f07379ec2",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_6"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoi-5H3UwPTQE0CdijJQhQpnfd-AFeeMc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
