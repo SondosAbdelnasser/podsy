@@ -23,7 +23,9 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         home: AuthScreen(),
+    theme: ThemeData(primarySwatch: Colors.blue),
         routes: {
+          '/auth': (ctx) => AuthScreen(),
           '/home': (ctx) => HomeScreen(),
           '/admin': (ctx) => AdminDashboardScreen(),
         },
