@@ -8,10 +8,10 @@ class AuthService {
   Future<UserCredential> signUp(String email, String password) async {
     final userCred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
     await _firestore.collection("users").doc(userCred.user!.uid).set({
-      "email": email,
-      "name": email.split('@')[0],
-      "isAdmin": false,
-    });
+       "email": email,
+       "name": email.split('@')[0],
+     "isAdmin": false,
+     });
     return userCred;
   }
 

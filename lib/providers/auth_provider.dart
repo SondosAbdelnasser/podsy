@@ -1,71 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user.dart';
-import '../services/auth_service.dart';
 import '../services/user_service.dart';
 
 class AuthProvider with ChangeNotifier {
-  final AuthService _authService = AuthService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final UserService _userService = UserService();
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  UserModel? _currentUser;
-  UserModel? get currentUser => _currentUser;
+  UserModel? _user;
 
-  bool get isAdmin => _currentUser?.isAdmin ?? false;
-
-  /// Whether the user is logged in
-  bool get isLoggedIn => _currentUser != null;
+  UserModel? get currentUser => _user;
+  bool get isLoggedIn => _user != null;
+  bool get isAdmin => _user?.isAdmin ?? false;
 
   Future<void> signUp(String email, String password) async {
-    final cred = await _authService.signUp(email, password);
-    // After signup, user has role = "user" in Firestore
-    _currentUser = await _userService.getUserById(cred.user!.uid);
+    final userCred = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    final newUser = UserModel(
+      id: userCred.user!.uid,
+      email: email,
+      name: email.split('@')[0],
+      isAdmin: false,
+    );
+
+    await _userService.createUser(newUser);
+    _user = newUser;
     notifyListeners();
   }
 
   Future<void> signIn(String email, String password) async {
-    final cred = await _authService.signIn(email, password);
-    // Fetch full user data including role
-    _currentUser = await _userService.getUserById(cred.user!.uid);
+    final userCred = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    final fetchedUser = await _userService.getUserById(userCred.user!.uid);
+    _user = fetchedUser;
     notifyListeners();
   }
 
-  // Add resetPassword method
-  Future<void> resetPassword(String email) async {
-    try {
-      await _firebaseAuth.sendPasswordResetEmail(email: email);
-    } catch (e) {
-      print("Error resetting password: $e");
-      throw e;
+  Future<void> tryAutoLogin() async {
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser != null) {
+      final fetchedUser = await _userService.getUserById(firebaseUser.uid);
+      if (fetchedUser != null) {
+        _user = fetchedUser;
+        notifyListeners();
+      }
     }
   }
 
-  // Add signInWithGoogle method
-  Future<UserCredential?> signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
+  Future<void> signOut() async {
+    await _auth.signOut();
+    _user = null;
+    notifyListeners();
+  }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+  Future<void> resetPassword(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
 
-      UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
-
-      // Fetch full user data including role
-      _currentUser = await _userService.getUserById(userCredential.user!.uid);
-      notifyListeners();
-
-      return userCredential;
-    } catch (e) {
-      print("Google sign-in error: $e");
-      throw e;
-    }
+  Future<void> signInWithGoogle() async {
+    // Implement Google Sign-In if needed later
   }
 }
-

@@ -1,35 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_6/widgets/auth_form.dart';
 import 'package:provider/provider.dart';
-import 'providers/auth_provider.dart';
-import 'screens/auth_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
+import 'providers/auth_provider.dart'; 
+import 'screens/home_screen.dart';    
+import 'screens/login_screen.dart';   
 import 'screens/admin_dashboard_screen.dart';
-import 'utils/firebase_config.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initFirebase();
-  runApp(MyApp());
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AuthProvider(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-   const MyApp({Key? key}) : super(key: key); 
+  const MyApp({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-      ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: AuthScreen(),
-    theme: ThemeData(primarySwatch: Colors.blue),
-        routes: {
-          '/auth': (ctx) => AuthScreen(),
-          '/home': (ctx) => HomeScreen(),
-          '/admin': (ctx) => AdminDashboardScreen(),
-        },
+    return MaterialApp(
+      title: 'Podsy',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      home: AuthForm(),  // Make sure this is not null and correctly initialized
+      routes: {
+        '/home': (context) => HomeScreen(),
+        '/login': (context) => LoginScreen(),
+        '/adminDashboard': (context) => AdminDashboardScreen(),
+      },
     );
   }
 }

@@ -18,7 +18,9 @@ class UserService {
       return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
     }).toList();
   }
-
+  Future<void> createUser(UserModel user) async {
+  await users.doc(user.id).set(user.toMap());
+  }
   Future<void> updateUserRole(String uid, bool isAdmin) async {
     await users.doc(uid).update({'isAdmin': isAdmin});
   }
