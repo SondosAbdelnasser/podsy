@@ -52,7 +52,7 @@ class _AuthFormState extends State<AuthForm> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: \${e.toString()}")),
+        SnackBar(content: Text("Error: ${e.toString()}")),
       );
     }
 
@@ -76,7 +76,7 @@ class _AuthFormState extends State<AuthForm> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: \${e.toString()}")),
+        SnackBar(content: Text("Error: ${e.toString()}")),
       );
     }
   }
@@ -99,7 +99,7 @@ class _AuthFormState extends State<AuthForm> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Google Sign-In failed: \${e.toString()}")),
+        SnackBar(content: Text("Google Sign-In failed: ${e.toString()}")),
       );
     }
     setState(() => _isLoading = false);
