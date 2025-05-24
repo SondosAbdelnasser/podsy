@@ -10,7 +10,7 @@ class UserService {
         .from('users')
         .select()
         .eq('id', uid)
-        .single();
+        .maybeSingle();
     
     if (response != null) {
       return UserModel.fromMap(response as Map<String, dynamic>, uid);

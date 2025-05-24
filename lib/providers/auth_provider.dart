@@ -7,6 +7,7 @@ import '../services/user_service.dart';
 class AuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email'],
     clientId: '554265067111-m12s5d59rfoml99sfjeaub8h2d068j2u.apps.googleusercontent.com',
   );
   final UserService _userService = UserService();
@@ -112,12 +113,15 @@ class AuthProvider with ChangeNotifier {
       
       if (existingUser == null) {
         // Create new user in Supabase if doesn't exist
-        final newUser = UserModel(
-          id: firebaseUser.uid,
-          email: firebaseUser.email!,
-          name: firebaseUser.displayName ?? firebaseUser.email!.split('@')[0],
-          is_admin: false,
-        );
+        print('Firebase User Email: ${firebaseUser.email}');
+      final email = firebaseUser.email ?? '';
+      final name = firebaseUser.displayName ?? (email.isNotEmpty ? email.split('@')[0] : 'Unknown');
+      final newUser = UserModel(
+        id: firebaseUser.uid,
+        email: email,
+        name: name,
+        is_admin: false,
+      );
         
         await _userService.createUser(newUser);
         _user = newUser;
