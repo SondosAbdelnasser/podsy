@@ -1,27 +1,43 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user.dart';
+import '../utils/supabase_config.dart';
 
 class UserService {
-  final CollectionReference users = FirebaseFirestore.instance.collection('users');
+  final SupabaseClient client = SupabaseConfig.client;
 
   Future<UserModel?> getUserById(String uid) async {
-    final doc = await users.doc(uid).get();
-    if (doc.exists) {
-      return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+    final response = await client
+        .from('users')
+        .select()
+        .eq('id', uid)
+        .maybeSingle();
+    
+    if (response != null) {
+      return UserModel.fromMap(response as Map<String, dynamic>, uid);
     }
     return null;
   }
 
   Future<List<UserModel>> fetchAllUsers() async {
-    final snapshot = await users.get();
-    return snapshot.docs.map((doc) {
-      return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-    }).toList();
+    final response = await client
+        .from('users')
+        .select();
+    
+    return (response as List)
+        .map((doc) => UserModel.fromMap(doc as Map<String, dynamic>, doc['id'] as String))
+        .toList();
   }
+
   Future<void> createUser(UserModel user) async {
-  await users.doc(user.id).set(user.toMap());
+    await client
+        .from('users')
+        .insert(user.toMap());
   }
+
   Future<void> updateUserRole(String uid, bool isAdmin) async {
-    await users.doc(uid).update({'isAdmin': isAdmin});
+    await client
+        .from('users')
+        .update({'is_admin': isAdmin})
+        .eq('id', uid);
   }
 }

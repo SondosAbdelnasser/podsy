@@ -40,7 +40,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           final user = _users[i];
           return UserListItem(
             email: user.email,
-            isAdmin: user.isAdmin,
+            is_admin: user.is_admin,
             onPromote: () => _promoteToAdmin(user.id),
           );
         },

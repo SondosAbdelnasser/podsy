@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> {
   await Future.delayed(Duration(seconds: 3)); // Simulate loading
 
   if (authProvider.isLoggedIn) {
-    if (authProvider.isAdmin) {
+    if (authProvider.is_admin) {
       Navigator.pushReplacementNamed(context, '/adminDashboard');
     } else {
       Navigator.pushReplacementNamed(context, '/home');
