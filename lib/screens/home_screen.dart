@@ -8,8 +8,19 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     return Scaffold(
-      appBar: AppBar(title: Text("Home")),
-      body: authProvider.isAdmin
+      appBar: AppBar(
+        title: Text("Home"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              await authProvider.signOut();
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+          ),
+        ],
+      ),
+      body: authProvider.is_admin
           ? AdminDashboardScreen()
           : Center(child: Text("Welcome, User!")),
     );

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class UserListItem extends StatelessWidget {
   final String email;
-  final bool isAdmin;
+  final bool is_admin;
   final VoidCallback? onPromote;
 
   const UserListItem({
     required this.email,
-    required this.isAdmin,
+    required this.is_admin,
     this.onPromote,
   });
 
@@ -15,8 +15,8 @@ class UserListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(email),
-      subtitle: Text("Role: ${isAdmin ? 'Admin' : 'User'}"),
-      trailing: !isAdmin
+      subtitle: Text("Role: ${is_admin ? 'Admin' : 'User'}"),
+      trailing: !is_admin
           ? ElevatedButton(
               onPressed: onPromote,
               child: Text("Promote to Admin"),

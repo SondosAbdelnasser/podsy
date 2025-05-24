@@ -11,7 +11,7 @@ class AuthProvider with ChangeNotifier {
 
   UserModel? get currentUser => _user;
   bool get isLoggedIn => _user != null;
-  bool get isAdmin => _user?.isAdmin ?? false;
+  bool get is_admin => _user?.is_admin ?? false;
 
   Future<void> signUp(String email, String password) async {
     final userCred = await _auth.createUserWithEmailAndPassword(
@@ -23,7 +23,7 @@ class AuthProvider with ChangeNotifier {
       id: userCred.user!.uid,
       email: email,
       name: email.split('@')[0],
-      isAdmin: false,
+      is_admin: false,
     );
 
     await _userService.createUser(newUser);

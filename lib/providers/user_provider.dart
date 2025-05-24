@@ -14,12 +14,12 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> promoteToAdmin(String uid) async {
-    await _userService.updateUserRole(uid, true); // Set isAdmin to true
+    await _userService.updateUserRole(uid, true); // Set is_admin to true
     await fetchUsers(); // Refresh after update
   }
 
   Future<void> demoteFromAdmin(String uid) async {
-    await _userService.updateUserRole(uid, false); // Set isAdmin to false
+    await _userService.updateUserRole(uid, false); // Set is_admin to false
     await fetchUsers(); // Refresh after update
   }
 }

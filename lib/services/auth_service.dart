@@ -10,7 +10,7 @@ class AuthService {
     await _firestore.collection("users").doc(userCred.user!.uid).set({
        "email": email,
        "name": email.split('@')[0],
-     "isAdmin": false,
+       "is_admin": false,
      });
     return userCred;
   }

@@ -40,10 +40,10 @@ class _AuthFormState extends State<AuthForm> {
         await authProvider.signUp(email, password);
       }
 
-      if (authProvider.isAdmin != null) {
+      if (authProvider.is_admin != null) {
         Navigator.pushReplacementNamed(
           context,
-          authProvider.isAdmin ? '/admin' : '/home',
+          authProvider.is_admin ? '/admin' : '/home',
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -87,10 +87,10 @@ class _AuthFormState extends State<AuthForm> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.signInWithGoogle();
 
-      if (authProvider.isAdmin != null) {
+      if (authProvider.is_admin != null) {
         Navigator.pushReplacementNamed(
           context,
-          authProvider.isAdmin ? '/admin' : '/home',
+          authProvider.is_admin ? '/admin' : '/home',
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
