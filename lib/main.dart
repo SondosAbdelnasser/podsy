@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_6/screens/upload_podcast.dart';
 import 'package:flutter_application_6/widgets/auth_form.dart';
 import 'package:provider/provider.dart';
 import 'screens/splash_screen.dart';
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomeScreen(),
         '/login': (context) => LoginScreen(),
         '/adminDashboard': (context) => AdminDashboardScreen(),
+        '/upload': (context) => UploadPodcastScreen(), // Upload podcast screen route
       },
     );
   }

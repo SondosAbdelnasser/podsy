@@ -33,7 +33,11 @@ dependencies:
 
   firebase_storage: ^12.4.5
 
+  supabase_flutter: ^1.10.16
+
   file_picker: ^6.1.1
+  
+  
 
 
   # Add Firebase packages here:
@@ -69,6 +73,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  
+
 
   # To add assets to your application, add an assets section, like this:
   assets:
