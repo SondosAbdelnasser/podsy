@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'admin_dashboard_screen.dart';
+import 'podcast_home.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
@@ -22,7 +23,7 @@ class HomeScreen extends StatelessWidget {
       ),
       body: authProvider.is_admin
           ? AdminDashboardScreen()
-          : Center(child: Text("Welcome, User!")),
+          : Home(),
     );
   }
 }

@@ -40,6 +40,7 @@ class MyApp extends StatelessWidget {
     
     return MaterialApp(
       title: 'Podsy',
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       home: AuthForm(),
       routes: {
