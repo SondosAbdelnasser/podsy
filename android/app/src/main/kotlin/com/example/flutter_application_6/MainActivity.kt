@@ -1,4 +1,4 @@
-package com.example.flutter_application_6
+package com.example.podsy
 
 import io.flutter.embedding.android.FlutterActivity
 
