@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:podsy/screens/upload_podcast.dart';
 import 'package:podsy/widgets/auth_form.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -10,6 +11,7 @@ import 'screens/login_screen.dart';
 import 'screens/admin_dashboard_screen.dart';
 import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
+import 'package:flutter/material.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +37,7 @@ class MyApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    
     return MaterialApp(
       title: 'Podsy',
       theme: AppTheme.darkTheme,
@@ -43,7 +46,30 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomeScreen(),
         '/login': (context) => LoginScreen(),
         '/adminDashboard': (context) => AdminDashboardScreen(),
+        '/uploadPodcast': (context) => UploadPodcastScreen(), // Add this line
       },
+      
+    );
+    
+
+
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Home')),
+      body: Center(
+        child: ElevatedButton.icon(
+          onPressed: () {
+            Navigator.pushNamed(context, '/uploadPodcast');
+          },
+          icon: Icon(Icons.upload),
+          label: Text('Upload Podcast'),
+        ),
+      ),
     );
   }
 }
