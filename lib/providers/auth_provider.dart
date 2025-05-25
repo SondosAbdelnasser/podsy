@@ -35,7 +35,7 @@ class AuthProvider with ChangeNotifier {
         id: userCred.user!.uid,
         email: email,
         name: email.split('@')[0],
-        isAdmin: false,
+        is_admin: false,
       );
 
       try {
@@ -120,7 +120,7 @@ class AuthProvider with ChangeNotifier {
         id: firebaseUser.uid,
         email: email,
         name: name,
-        isAdmin: false,
+        is_admin: false,
       );
         
         await _userService.createUser(newUser);
