@@ -1,40 +1,54 @@
+// lib/services/like_service.dart
+
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/material.dart';
 import '../models/like.dart';
 
-class LikeService {
-  final supabase = Supabase.instance.client;
+class LikeService extends ChangeNotifier {
+  final String userId;
+  bool _isLiked = false;
 
-  Future<void> addLike(String userId, String episodeId) async {
-    await supabase.from('likes').insert({
-      'user_id': userId,
-      'episode_id': episodeId,
-    });
-  }
+  LikeService({required this.userId});
 
-  Future<void> removeLike(String userId, String episodeId) async {
-    await supabase
+  bool get isLiked => _isLiked;
+
+  Future<void> toggleLike(String episodeId) async {
+    if (_isLiked) {
+      print("User already liked this episode.");
+      return;
+    }
+
+    final like = Like(
+      id: '',
+      userId: userId,
+      episodeId: episodeId,
+      createdAt: DateTime.now(),
+    );
+
+    final response = await Supabase.instance.client
         .from('likes')
-        .delete()
-        .eq('user_id', userId)
-        .eq('episode_id', episodeId);
+        .insert(like.toMap())
+        .execute();
+
+    if (response.error == null) {
+      _isLiked = true;
+      notifyListeners();
+      print('Like saved');
+    } else {
+      print('Error saving like: ${response.error?.message}');
+    }
   }
 
-  Future<List<Like>> fetchLikesByUser(String userId) async {
-    final response =
-        await supabase.from('likes').select().eq('user_id', userId);
-    return (response as List)
-        .map((data) => Like.fromMap(data, data['id']))
-        .toList();
-  }
-
-  Future<bool> isLiked(String userId, String episodeId) async {
-    final response = await supabase
+  Future<void> checkIfLiked(String episodeId) async {
+    final response = await Supabase.instance.client
         .from('likes')
-        .select()
+        .select('id')
         .eq('user_id', userId)
-        .eq('episode_id', episodeId);
+        .eq('episode_id', episodeId)
+        .single()
+        .execute();
 
-    return response.isNotEmpty;
+    _isLiked = response.data != null;
+    notifyListeners();
   }
 }
-
