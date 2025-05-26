@@ -1,7 +1,8 @@
-
 //claude hwa wel screen bta3 upload 
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/podcast_collection.dart';
 import '../models/episode.dart';
 import '../utils/supabase_config.dart';
@@ -62,29 +63,42 @@ class PodcastService {
     required String collectionId,
     required String title,
     String? description,
-    required File audioFile,
+    File? audioFile, // for mobile
+    Uint8List? audioBytes, // for web
+    String? audioFileName,
   }) async {
     try {
-      // Upload audio file to Supabase Storage
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${audioFile.path.split('/').last}';
+      final fileName = audioFileName ?? '${DateTime.now().millisecondsSinceEpoch}.mp3';
       final filePath = 'podcasts/$collectionId/$fileName';
       
-      await client.storage
-          .from('podcast-files')
-          .upload(filePath, audioFile);
+      if (kIsWeb) {
+        if (audioBytes == null) throw Exception('No audio bytes provided for web upload');
+        await client.storage
+            .from('podcast-files')
+            .uploadBinary(filePath, audioBytes);
+      } else {
+        if (audioFile == null) throw Exception('No audio file provided for mobile upload');
+        await client.storage
+            .from('podcast-files')
+            .upload(filePath, audioFile);
+      }
 
-      // Get the public URL of the uploaded file
       final audioUrl = client.storage
           .from('podcast-files')
           .getPublicUrl(filePath);
 
-      // Get audio duration (simplified - you might want to use a package like audioplayers for accurate duration)
-      final fileStat = await audioFile.stat();
-      final estimatedDuration = Duration(seconds: (fileStat.size / 16000).round()); // Rough estimate
+      Duration estimatedDuration;
+      if (!kIsWeb && audioFile != null) {
+        final fileStat = await audioFile.stat();
+        estimatedDuration = Duration(seconds: (fileStat.size / 16000).round());
+      } else if (kIsWeb && audioBytes != null) {
+        estimatedDuration = Duration(seconds: (audioBytes.length / 16000).round());
+      } else {
+        estimatedDuration = Duration.zero;
+      }
 
-      // Create episode record in database
       final episode = Episode(
-        id: '', // Will be set by Supabase
+        id: '',
         collectionId: collectionId,
         title: title,
         description: description,

@@ -6,6 +6,8 @@ import '../providers/auth_provider.dart';
 import '../services/podcast_service.dart';
 import '../models/podcast_collection.dart';
 import '../models/episode.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:typed_data';
 
 class UploadPodcastScreen extends StatefulWidget {
   @override
@@ -19,6 +21,7 @@ class _UploadPodcastScreenState extends State<UploadPodcastScreen> {
   final PodcastService _podcastService = PodcastService();
 
   File? _audioFile;
+  Uint8List? _audioBytes; // For web
   String? _audioFileName;
   bool _isUploading = false;
 
@@ -34,13 +37,23 @@ class _UploadPodcastScreenState extends State<UploadPodcastScreen> {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.audio,
         allowMultiple: false,
+        withData: kIsWeb, // get bytes on web
       );
 
-      if (result != null && result.files.single.path != null) {
-        setState(() {
-          _audioFile = File(result.files.single.path!);
-          _audioFileName = result.files.single.name;
-        });
+      if (result != null) {
+        if (kIsWeb) {
+          setState(() {
+            _audioBytes = result.files.single.bytes;
+            _audioFileName = result.files.single.name;
+            _audioFile = null;
+          });
+        } else {
+          setState(() {
+            _audioFile = File(result.files.single.path!);
+            _audioFileName = result.files.single.name;
+            _audioBytes = null;
+          });
+        }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -55,7 +68,7 @@ class _UploadPodcastScreenState extends State<UploadPodcastScreen> {
   Future<void> _uploadPodcast() async {
     if (!_formKey.currentState!.validate()) return;
     
-    if (_audioFile == null) {
+    if ((!kIsWeb && _audioFile == null) || (kIsWeb && _audioBytes == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please select an audio file'),
@@ -68,20 +81,18 @@ class _UploadPodcastScreenState extends State<UploadPodcastScreen> {
     setState(() => _isUploading = true);
 
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false); //5aletha true kant false 
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final currentUser = authProvider.currentUser;
 
       if (currentUser == null) {
         throw Exception('User not authenticated');
       }
 
-      // First, create or get a podcast collection for the user
       PodcastCollection? collection = await _podcastService.getUserCollection(currentUser.id);
       
       if (collection == null) {
-        // Create a default collection for the user
         collection = PodcastCollection(
-          id: '', // Will be set by Supabase
+          id: '',
           userId: currentUser.id,
           title: "${currentUser.name}'s Podcasts",
           description: "Personal podcast collection",
@@ -91,14 +102,15 @@ class _UploadPodcastScreenState extends State<UploadPodcastScreen> {
         collection = await _podcastService.createCollection(collection);
       }
 
-      // Upload the audio file and create the episode
       await _podcastService.uploadEpisode(
         collectionId: collection.id,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim().isEmpty 
             ? null 
             : _descriptionController.text.trim(),
-        audioFile: _audioFile!,
+        audioFile: kIsWeb ? null : _audioFile,
+        audioBytes: kIsWeb ? _audioBytes : null,
+        audioFileName: _audioFileName,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -108,15 +120,14 @@ class _UploadPodcastScreenState extends State<UploadPodcastScreen> {
         ),
       );
 
-      // Clear the form
       _titleController.clear();
       _descriptionController.clear();
       setState(() {
         _audioFile = null;
+        _audioBytes = null;
         _audioFileName = null;
       });
 
-      // Navigate back or to home
       Navigator.pop(context);
 
     } catch (e) {
