@@ -12,6 +12,7 @@ import 'screens/admin_dashboard_screen.dart';
 import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'screens/podcast_home.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,10 +45,10 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.darkTheme,
       home: AuthForm(),
       routes: {
-        '/home': (context) => HomeScreen(),
+        '/home': (context) => Home(),
         '/login': (context) => LoginScreen(),
         '/adminDashboard': (context) => AdminDashboardScreen(),
-        '/uploadPodcast': (context) => UploadPodcastScreen(), // Add this line
+        //'/uploadPodcast': (context) => UploadPodcastScreen(), // Add this line
       },
       
     );
