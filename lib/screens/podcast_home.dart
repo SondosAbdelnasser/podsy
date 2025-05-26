@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/podcast_card.dart';
 import '../widgets/episode_tile.dart';
+import 'users_list_page.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -61,6 +62,15 @@ class _HomeScreenState extends State<Home> {
           style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.people, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const UsersListPage()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.search, color: Colors.white),
             onPressed: () {},

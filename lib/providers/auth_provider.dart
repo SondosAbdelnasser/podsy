@@ -65,6 +65,7 @@ class AuthProvider with ChangeNotifier {
 
     final fetchedUser = await _userService.getUserById(userCred.user!.uid);
     _user = fetchedUser;
+    
     notifyListeners();
   }
 
@@ -116,18 +117,17 @@ class AuthProvider with ChangeNotifier {
       
       if (existingUser == null) {
         // Create new user in Supabase if doesn't exist
-        print('Firebase User Email: ${firebaseUser.email}');
-      final email = firebaseUser.email ?? '';
-      final name = firebaseUser.displayName ?? (email.isNotEmpty ? email.split('@')[0] : 'Unknown');
-      final newUser = UserModel(
-        id: firebaseUser.uid,
-        email: email,
-        name: name,
-        isAdmin: false,
-        autoAcceptFollows: true,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+        final email = firebaseUser.email ?? '';
+        final name = firebaseUser.displayName ?? (email.isNotEmpty ? email.split('@')[0] : 'Unknown');
+        final newUser = UserModel(
+          id: firebaseUser.uid,
+          email: email,
+          name: name,
+          isAdmin: false,
+          autoAcceptFollows: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
         
         await _userService.createUser(newUser);
         _user = newUser;

@@ -9,6 +9,7 @@ import 'providers/auth_provider.dart';
 import 'screens/home_screen.dart';    
 import 'screens/login_screen.dart';   
 import 'screens/admin_dashboard_screen.dart';
+import 'screens/users_list_page.dart';
 import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -61,7 +62,20 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Home')),
+      appBar: AppBar(
+        title: Text('Home'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.people),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const UsersListPage()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Center(
         child: ElevatedButton.icon(
           onPressed: () {

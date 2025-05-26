@@ -1,0 +1,334 @@
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/user.dart';
+import '../models/podcast_collection.dart';
+import '../models/episode.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+class UserProfilePage extends StatefulWidget {
+  final String userId;
+
+  const UserProfilePage({Key? key, required this.userId}) : super(key: key);
+
+  @override
+  State<UserProfilePage> createState() => _UserProfilePageState();
+}
+
+class _UserProfilePageState extends State<UserProfilePage> {
+  final _supabase = Supabase.instance.client;
+  UserModel? _user;
+  List<PodcastCollection> _collections = [];
+  Map<String, List<Episode>> _episodesByCollection = {};
+  int _followersCount = 0;
+  int _followingCount = 0;
+  bool _isFollowing = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      // Load user data
+      final userResponse = await _supabase
+          .from('users')
+          .select()
+          .eq('id', widget.userId)
+          .single();
+      _user = UserModel.fromMap(userResponse, userResponse['id']);
+
+      // Load collections
+      final collectionsResponse = await _supabase
+          .from('podcast_collections')
+          .select()
+          .eq('user_id', widget.userId)
+          .order('created_at', ascending: false);
+      _collections = collectionsResponse
+          .map((data) => PodcastCollection.fromMap(data, data['id']))
+          .toList();
+
+      // Load episodes for each collection
+      for (var collection in _collections) {
+        final episodesResponse = await _supabase
+            .from('episodes')
+            .select()
+            .eq('collection_id', collection.id)
+            .order('created_at', ascending: false);
+        _episodesByCollection[collection.id] = episodesResponse
+            .map((data) => Episode.fromMap(data, data['id']))
+            .toList();
+      }
+
+      // Load followers and following counts
+      final followersResponse = await _supabase
+          .from('follows')
+          .select()
+          .eq('followed_id', widget.userId);
+      _followersCount = followersResponse.length;
+
+      final followingResponse = await _supabase
+          .from('follows')
+          .select()
+          .eq('follower_id', widget.userId);
+      _followingCount = followingResponse.length;
+
+      // Check if current user is following
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        final isFollowingResponse = await _supabase
+            .from('follows')
+            .select()
+            .eq('follower_id', currentUser.uid)
+            .eq('followed_id', widget.userId)
+            .maybeSingle();
+        _isFollowing = isFollowingResponse != null;
+      }
+
+      setState(() => _isLoading = false);
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading user data: $e')),
+      );
+    }
+  }
+
+  Future<void> _toggleFollow() async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      print('Current user: [200m${currentUser?.uid}[0m'); // Debug log
+      print('Current user email: ${currentUser?.email}'); // Debug log
+      print('Current user metadata: ${currentUser?.metadata}'); // Debug log
+      if (currentUser == null) {
+        print('No user is currently signed in'); // Debug log
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please login to follow users')),
+        );
+        return;
+      }
+
+      // Don't allow following yourself
+      if (currentUser.uid == widget.userId) {
+        print('Attempted to follow self'); // Debug log
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You cannot follow yourself')),
+        );
+        return;
+      }
+
+      if (_isFollowing) {
+        // Unfollow
+        print('Attempting to unfollow user: ${widget.userId}'); // Debug log
+        await _supabase
+            .from('follows')
+            .delete()
+            .match({
+              'follower_id': currentUser.uid,
+              'followed_id': widget.userId,
+            });
+        setState(() {
+          _followersCount--;
+          _isFollowing = false;
+        });
+      } else {
+        // Follow
+        print('Attempting to follow user: ${widget.userId}'); // Debug log
+        await _supabase.from('follows').insert({
+          'follower_id': currentUser.uid,
+          'followed_id': widget.userId,
+          'created_at': DateTime.now().toIso8601String(),
+        });
+        setState(() {
+          _followersCount++;
+          _isFollowing = true;
+        });
+      }
+    } catch (e) {
+      print('Error in _toggleFollow: $e'); // Debug log
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
+  void _showFollowersList() {
+    // TODO: Implement followers list page
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Followers list coming soon')),
+    );
+  }
+
+  void _showFollowingList() {
+    // TODO: Implement following list page
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Following list coming soon')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_user == null) {
+      return const Scaffold(
+        body: Center(child: Text('User not found')),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_user!.name),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Profile Header
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 40,
+                        child: Text(_user!.name[0].toUpperCase()),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _user!.name,
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                            if (_user!.username != null)
+                              Text(
+                                '@${_user!.username}',
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      GestureDetector(
+                        onTap: _showFollowersList,
+                        child: Column(
+                          children: [
+                            Text(
+                              _followersCount.toString(),
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const Text('Followers'),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: _showFollowingList,
+                        child: Column(
+                          children: [
+                            Text(
+                              _followingCount.toString(),
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const Text('Following'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _toggleFollow,
+                      child: Text(_isFollowing ? 'Unfollow' : 'Follow'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(),
+            // Collections and Episodes
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Collections',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _collections.length,
+                    itemBuilder: (context, index) {
+                      final collection = _collections[index];
+                      final episodes = _episodesByCollection[collection.id] ?? [];
+                      return Card(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ListTile(
+                              title: Text(collection.title),
+                              subtitle: Text(collection.description ?? ''),
+                              onTap: () {
+                                // TODO: Navigate to collection page
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Collection page coming soon'),
+                                  ),
+                                );
+                              },
+                            ),
+                            if (episodes.isNotEmpty)
+                              ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: episodes.length,
+                                itemBuilder: (context, episodeIndex) {
+                                  final episode = episodes[episodeIndex];
+                                  return ListTile(
+                                    title: Text(episode.title),
+                                    subtitle: Text(episode.description ?? ''),
+                                    onTap: () {
+                                      // TODO: Navigate to episode page
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Episode page coming soon'),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+} 
