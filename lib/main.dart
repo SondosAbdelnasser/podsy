@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:podsy/screens/onboarding_screen.dart';
 import 'package:podsy/screens/upload_podcast.dart';
 import 'package:podsy/widgets/auth_form.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +14,7 @@ import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'screens/podcast_home.dart';
+import 'screens/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +47,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.darkTheme,
       home: AuthForm(),
       routes: {
+        '/onboarding': (context)=> OnboardingScreen(),
         '/home': (context) => Home(),
         '/login': (context) => LoginScreen(),
         '/adminDashboard': (context) => AdminDashboardScreen(),

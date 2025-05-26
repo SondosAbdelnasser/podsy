@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';  // استيراد الـ UserProvider
-import '../screens/profile_screen.dart';  // تأكد من أنك عامل صفحة ProfileScreen
-
+import '../providers/user_provider.dart';  
+import '../screens/profile_screen.dart';  
 class CustomDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // استخدام الـ Consumer للحصول على بيانات المستخدم
+    // 
     final userProvider = Provider.of<UserProvider>(context);
 
     return Drawer(
