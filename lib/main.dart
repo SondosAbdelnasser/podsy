@@ -9,9 +9,10 @@ import 'providers/auth_provider.dart';
 import 'screens/home_screen.dart';    
 import 'screens/login_screen.dart';   
 import 'screens/admin_dashboard_screen.dart';
+import 'screens/create_podcast_screen.dart';
+import 'screens/user_podcasts_screen.dart';
 import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
-import 'package:flutter/material.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,7 +38,6 @@ class MyApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    
     return MaterialApp(
       title: 'Podsy',
       debugShowCheckedModeBanner: false,
@@ -47,13 +47,11 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomeScreen(),
         '/login': (context) => LoginScreen(),
         '/adminDashboard': (context) => AdminDashboardScreen(),
-        '/uploadPodcast': (context) => UploadPodcastScreen(), // Add this line
+        '/uploadPodcast': (context) => UploadPodcastScreen(),
+        '/createPodcast': (context) => CreatePodcastScreen(),
+        '/myPodcasts': (context) => UserPodcastsScreen(),
       },
-      
     );
-    
-
-
   }
 }
 
@@ -61,14 +59,41 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Home')),
+      appBar: AppBar(
+        title: Text('Home'),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      backgroundColor: Colors.black,
       body: Center(
-        child: ElevatedButton.icon(
-          onPressed: () {
-            Navigator.pushNamed(context, '/uploadPodcast');
-          },
-          icon: Icon(Icons.upload),
-          label: Text('Upload Podcast'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, '/myPodcasts');
+              },
+              icon: Icon(Icons.mic),
+              label: Text('My Podcasts'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                textStyle: TextStyle(fontSize: 18),
+              ),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, '/createPodcast');
+              },
+              icon: Icon(Icons.add),
+              label: Text('Create New Podcast'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                textStyle: TextStyle(fontSize: 18),
+              ),
+            ),
+          ],
         ),
       ),
     );

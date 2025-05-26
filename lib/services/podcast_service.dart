@@ -1,4 +1,3 @@
-
 //claude hwa wel screen bta3 upload 
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -69,18 +68,52 @@ class PodcastService {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${audioFile.path.split('/').last}';
       final filePath = 'podcasts/$collectionId/$fileName';
       
-      await client.storage
-          .from('podcast-files')
-          .upload(filePath, audioFile);
+      try {
+        // First try to list buckets to verify storage access
+        final buckets = await client.storage.listBuckets();
+        print('Available buckets: ${buckets.map((b) => b.name).join(', ')}');
+        
+        // Try to create the bucket if it doesn't exist
+        try {
+          await client.storage.createBucket('podcast-files');
+          print('Created podcast-files bucket');
+        } catch (e) {
+          print('Bucket might already exist or cannot be created: ${e.toString()}');
+        }
+
+        // Upload the file
+        await client.storage
+            .from('podcast-files')
+            .upload(filePath, audioFile, fileOptions: FileOptions(
+              cacheControl: '3600',
+              upsert: true
+            ));
+      } catch (storageError) {
+        print('Storage error details: ${storageError.toString()}');
+        if (storageError.toString().contains('namespace')) {
+          throw Exception('Storage bucket not found or not accessible. Please ensure the bucket "podcast-files" exists in your Supabase project.');
+        }
+        throw Exception('Storage upload failed: ${storageError.toString()}');
+      }
 
       // Get the public URL of the uploaded file
-      final audioUrl = client.storage
-          .from('podcast-files')
-          .getPublicUrl(filePath);
+      String audioUrl;
+      try {
+        audioUrl = client.storage
+            .from('podcast-files')
+            .getPublicUrl(filePath);
+      } catch (urlError) {
+        throw Exception('Failed to get public URL: ${urlError.toString()}');
+      }
 
       // Get audio duration (simplified - you might want to use a package like audioplayers for accurate duration)
-      final fileStat = await audioFile.stat();
-      final estimatedDuration = Duration(seconds: (fileStat.size / 16000).round()); // Rough estimate
+      Duration estimatedDuration;
+      try {
+        final fileStat = await audioFile.stat();
+        estimatedDuration = Duration(seconds: (fileStat.size / 16000).round()); // Rough estimate
+      } catch (durationError) {
+        throw Exception('Failed to get audio duration: ${durationError.toString()}');
+      }
 
       // Create episode record in database
       final episode = Episode(
@@ -95,12 +128,24 @@ class PodcastService {
         updatedAt: DateTime.now(),
       );
 
-      await client
-          .from('episodes')
-          .insert(episode.toMap());
+      try {
+        await client
+            .from('episodes')
+            .insert(episode.toMap());
+      } catch (dbError) {
+        // If database insert fails, try to clean up the uploaded file
+        try {
+          await client.storage
+              .from('podcast-files')
+              .remove([filePath]);
+        } catch (cleanupError) {
+          print('Failed to cleanup storage after db error: ${cleanupError.toString()}');
+        }
+        throw Exception('Failed to create episode record: ${dbError.toString()}');
+      }
 
     } catch (e) {
-      throw Exception('Failed to upload episode: ${e.toString()}');
+      throw Exception('Upload process failed: ${e.toString()}');
     }
   }
 
@@ -206,3 +251,8 @@ class PodcastService {
     }
   }
 }
+
+////////////////////////////////////////////////////////
+
+
+

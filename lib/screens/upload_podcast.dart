@@ -72,7 +72,7 @@ class _UploadPodcastScreenState extends State<UploadPodcastScreen> {
       final currentUser = authProvider.currentUser;
 
       if (currentUser == null) {
-        throw Exception('User not authenticated');
+        throw Exception('User not authenticated, plz login again');
       }
 
       // First, create or get a podcast collection for the user
