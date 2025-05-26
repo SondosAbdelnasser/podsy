@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/podcast_card.dart';
 import '../widgets/episode_tile.dart';
+import 'profile_screen.dart'; 
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -66,6 +67,33 @@ class _HomeScreenState extends State<Home> {
             onPressed: () {},
           ),
         ],
+      ),
+      drawer: Drawer(
+        backgroundColor: Colors.black,
+        child: ListView(
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.black,
+              ),
+              child: Text(
+                'Menu',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_circle, color: Colors.white),
+              title: const Text('Profile', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                // Navigate to Profile Screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfileScreen()),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

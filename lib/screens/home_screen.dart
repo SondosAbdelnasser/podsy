@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'admin_dashboard_screen.dart';
 import 'podcast_home.dart';
+import 'onboarding_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
@@ -23,7 +24,7 @@ class HomeScreen extends StatelessWidget {
       ),
       body: authProvider.is_admin
           ? AdminDashboardScreen()
-          : Home(),
+          : OnboardingScreen(),
     );
   }
 }
