@@ -68,7 +68,7 @@ class _UploadPodcastScreenState extends State<UploadPodcastScreen> {
     setState(() => _isUploading = true);
 
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false); //5aletha true kant false 
       final currentUser = authProvider.currentUser;
 
       if (currentUser == null) {

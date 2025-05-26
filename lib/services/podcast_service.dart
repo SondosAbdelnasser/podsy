@@ -69,21 +69,14 @@ class PodcastService {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${audioFile.path.split('/').last}';
       final filePath = 'podcasts/$collectionId/$fileName';
       
-      // await client.storage
-      //     .from('podcast-audio')
-      //     .upload(filePath, audioFile);
-      final fileBytes = await audioFile.readAsBytes();
       await client.storage
-       .from('podcast-audio')
-       .uploadBinary(filePath, fileBytes);
+          .from('podcast-files')
+          .upload(filePath, audioFile);
 
-
-      // // Get the public URL of the uploaded file
+      // Get the public URL of the uploaded file
       final audioUrl = client.storage
-          .from('podcast-audio')
+          .from('podcast-files')
           .getPublicUrl(filePath);
-
-      
 
       // Get audio duration (simplified - you might want to use a package like audioplayers for accurate duration)
       final fileStat = await audioFile.stat();
@@ -155,7 +148,7 @@ class PodcastService {
         if (pathSegments.length >= 3) {
           final filePath = pathSegments.sublist(2).join('/'); // Skip bucket and 'object' segments
           await client.storage
-              .from('podcast-audio')
+              .from('podcast-files')
               .remove([filePath]);
         }
       }
