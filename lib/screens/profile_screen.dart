@@ -1,64 +1,329 @@
 import 'package:flutter/material.dart';
-import 'upload_podcast.dart';  // 
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../services/podcast_service.dart';
+import '../models/podcast_collection.dart';
+import 'podcast_details_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
+  @override
+  _ProfileScreenState createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final PodcastService _podcastService = PodcastService();
+  bool _isLoading = true;
+  List<PodcastCollection> _podcasts = [];
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPodcasts();
+  }
+
+  Future<void> _loadPodcasts() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final currentUser = authProvider.currentUser;
+
+      if (currentUser == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final podcasts = await _podcastService.getUserCollections(currentUser.id);
+      setState(() {
+        _podcasts = podcasts;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final currentUser = authProvider.currentUser;
+
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text(
-          'Profile',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.white,
-              child: Icon(Icons.account_circle, size: 100, color: Colors.black),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'User Name',  //
-              style: TextStyle(color: Colors.white, fontSize: 24),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'User Bio',  // 
-              style: TextStyle(color: Colors.white70, fontSize: 16),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to Upload Podcast Screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => UploadPodcastScreen()),
-                );
-              },
-              child: const Text(
-                'Upload Podcast',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 56),
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+      body: RefreshIndicator(
+        onRefresh: _loadPodcasts,
+        child: CustomScrollView(
+          slivers: [
+            // Profile Header
+            SliverAppBar(
+              expandedHeight: 200,
+              pinned: true,
+              backgroundColor: Colors.black,
+              flexibleSpace: FlexibleSpaceBar(
+                title: Text(
+                  currentUser?.name ?? 'Profile',
+                  style: TextStyle(color: Colors.white),
                 ),
-                elevation: 0,
+                background: Container(
+                  color: Colors.white10,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Theme.of(context).primaryColor,
+                        child: Text(
+                          (currentUser?.name ?? 'U')[0].toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 40,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        currentUser?.email ?? '',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.logout),
+                  onPressed: () async {
+                    await authProvider.signOut();
+                    Navigator.pushReplacementNamed(context, '/login');
+                  },
+                ),
+              ],
+            ),
+
+            // My Podcasts Section
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'My Podcasts',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.add, color: Colors.white),
+                      onPressed: () async {
+                        await Navigator.pushNamed(context, '/createPodcast');
+                        _loadPodcasts();
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
+
+            // Podcasts List
+            _isLoading
+                ? SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : _error != null
+                    ? SliverFillRemaining(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Error loading podcasts',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                _error!,
+                                style:
+                                    TextStyle(color: Colors.red, fontSize: 14),
+                              ),
+                              SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _loadPodcasts,
+                                child: Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : _podcasts.isEmpty
+                        ? SliverFillRemaining(
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.mic_none,
+                                    size: 64,
+                                    color: Colors.white54,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'No podcasts yet',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Create your first podcast!',
+                                    style: TextStyle(
+                                      color: Colors.white54,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  SizedBox(height: 24),
+                                  ElevatedButton.icon(
+                                    onPressed: () async {
+                                      await Navigator.pushNamed(
+                                          context, '/createPodcast');
+                                      _loadPodcasts();
+                                    },
+                                    icon: Icon(Icons.add),
+                                    label: Text('Create Podcast'),
+                                    style: ElevatedButton.styleFrom(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 24, vertical: 12),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final podcast = _podcasts[index];
+                                return PodcastCard(
+                                  podcast: podcast,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            PodcastDetailsScreen(
+                                                podcast: podcast),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                              childCount: _podcasts.length,
+                            ),
+                          ),
           ],
         ),
       ),
     );
+  }
+}
+
+class PodcastCard extends StatelessWidget {
+  final PodcastCollection podcast;
+  final VoidCallback onTap;
+
+  const PodcastCard({
+    Key? key,
+    required this.podcast,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.white10,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.mic,
+                    color: Theme.of(context).primaryColor,
+                    size: 24,
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      podcast.title,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: Colors.white54,
+                  ),
+                ],
+              ),
+              if (podcast.description != null &&
+                  podcast.description!.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.only(top: 8, left: 36),
+                  child: Text(
+                    podcast.description!,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              Padding(
+                padding: EdgeInsets.only(top: 8, left: 36),
+                child: Text(
+                  'Created ${_formatDate(podcast.createdAt)}',
+                  style: TextStyle(
+                    color: Colors.white38,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }

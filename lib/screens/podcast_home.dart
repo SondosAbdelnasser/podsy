@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../widgets/podcast_card.dart';
+import '../widgets/podcast_card.dart' as widgets;
 import '../widgets/episode_tile.dart';
 import 'profile_screen.dart'; 
 
@@ -114,7 +114,7 @@ class _HomeScreenState extends State<Home> {
                       itemCount: trendingPodcasts.length,
                       itemBuilder: (context, index) {
                         final podcast = trendingPodcasts[index];
-                        return PodcastCard(podcast: podcast);
+                        return widgets.PodcastCard(podcast: podcast);
                       },
                     ),
                   ),
