@@ -38,7 +38,6 @@ dependencies:
   firebase_auth: ^5.5.2
   google_sign_in: ^6.1.0
   lottie: ^2.7.0
-  just_audio: ^0.9.30
   share_plus: 11.0.0
 
   # Add Supabase packages here:
@@ -47,6 +46,7 @@ dependencies:
   # Add any other packages:
   provider: ^6.1.2
   file_picker: ^10.1.9
+  path: ^1.9.1
   http: ^1.1.0  # Added for API calls
   just_audio: ^0.9.36  # Added for audio playback
 
