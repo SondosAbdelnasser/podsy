@@ -14,10 +14,12 @@ import 'screens/user_podcasts_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/main_navigation.dart';
 import 'screens/users_list_page.dart';
+import 'screens/play_screen.dart';
 import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
 import 'services/audio_player_service.dart';
 import 'services/like_service.dart';
+import 'services/deep_link_service.dart';
 import 'widgets/auth_wrapper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -52,9 +54,25 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
   
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final DeepLinkService _deepLinkService = DeepLinkService();
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize deep link service after the first frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _deepLinkService.init(context);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -67,10 +85,15 @@ class MyApp extends StatelessWidget {
         '/home': (context) => AuthWrapper(child: MainNavigation()),
         '/login': (context) => LoginScreen(),
         '/adminDashboard': (context) => AuthWrapper(child: AdminDashboardScreen()),
-       // '/uploadPodcast': (context) => AuthWrapper(child: UploadPodcastScreen()),
         '/createPodcast': (context) => AuthWrapper(child: CreatePodcastScreen()),
         '/myPodcasts': (context) => AuthWrapper(child: UserPodcastsScreen()),
         '/profile': (context) => AuthWrapper(child: ProfileScreen()),
+        '/episode': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return AuthWrapper(
+            child: PlayScreen(episode: args['episode']),
+          );
+        },
       },
     );
   }

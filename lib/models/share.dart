@@ -1,11 +1,11 @@
-class Share {
+class ShareRecord {
   final String id;
   final String userId;
   final String episodeId;
   final String platform;
   final DateTime createdAt;
 
-  Share({
+  ShareRecord({
     required this.id,
     required this.userId,
     required this.episodeId,
@@ -13,8 +13,8 @@ class Share {
     required this.createdAt,
   });
 
-  factory Share.fromMap(Map<String, dynamic> data, String documentId) {
-    return Share(
+  factory ShareRecord.fromMap(Map<String, dynamic> data, String documentId) {
+    return ShareRecord(
       id: documentId,
       userId: data['user_id'] ?? '',
       episodeId: data['episode_id'] ?? '',

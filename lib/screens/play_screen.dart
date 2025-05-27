@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/audio_player_service.dart';
 import '../services/like_service.dart';
+import '../services/share_service.dart';
 import '../models/episode.dart';
 import '../widgets/play_controls.dart';
 import '../widgets/like_button.dart';
@@ -16,11 +17,31 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen> {
+  final ShareService _shareService = ShareService();
+
   @override
   void initState() {
     super.initState();
     final likeService = Provider.of<LikeService>(context, listen: false);
     likeService.checkIfLiked(widget.episode.id);
+  }
+
+  Future<void> _shareEpisode() async {
+    try {
+      await _shareService.shareEpisode(
+        episodeId: widget.episode.id,
+        title: widget.episode.title,
+        description: widget.episode.description ?? '',
+        audioUrl: widget.episode.audioUrl,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error sharing episode: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -53,9 +74,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.share),
-                  onPressed: () {
-                    // share logic here
-                  },
+                  onPressed: _shareEpisode,
                 ),
               ],
             ),
