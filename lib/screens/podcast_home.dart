@@ -374,10 +374,167 @@ class _HomeScreenState extends State<Home> {
                                 },
                               ),
                             ),
+                            SizedBox(height: 24),
+                            // Latest Episodes Feed Section
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text(
+                                'Latest Episodes',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            FutureBuilder<List<Podcast>>(
+                              future: _podcastService.getFollowedUsersEpisodes(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return Center(child: CircularProgressIndicator());
+                                }
+                                
+                                if (snapshot.hasError) {
+                                  return Center(
+                                    child: Text(
+                                      'Error loading episodes',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  );
+                                }
+
+                                final followedPodcasts = snapshot.data ?? [];
+                                final allEpisodes = followedPodcasts
+                                    .expand((podcast) => podcast.episodes)
+                                    .toList()
+                                  ..sort((a, b) => b.publishDate.compareTo(a.publishDate));
+
+                                if (allEpisodes.isEmpty) {
+                                  return Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 16),
+                                    child: Text(
+                                      'Follow some users to see their latest episodes here!',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                return ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  itemCount: allEpisodes.length,
+                                  itemBuilder: (context, index) {
+                                    final episode = allEpisodes[index];
+                                    final podcast = followedPodcasts.firstWhere(
+                                      (p) => p.episodes.contains(episode),
+                                      orElse: () => followedPodcasts.first,
+                                    );
+                                    return Card(
+                                      margin: EdgeInsets.only(bottom: 12),
+                                      color: Color(0xFFF3E5F5),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: ListTile(
+                                        contentPadding: EdgeInsets.all(12),
+                                        leading: CircleAvatar(
+                                          radius: 24,
+                                          backgroundColor: Colors.white,
+                                          child: Text(
+                                            podcast.title[0].toUpperCase(),
+                                            style: TextStyle(
+                                              color: Theme.of(context).primaryColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                            ),
+                                          ),
+                                        ),
+                                        title: Text(
+                                          episode.title,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        subtitle: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              podcast.title,
+                                              style: TextStyle(
+                                                color: Colors.black54,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                            Text(
+                                              '${_formatDuration(episode.duration)} • ${_formatDate(episode.publishDate)}',
+                                              style: TextStyle(
+                                                color: Colors.black54,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        trailing: IconButton(
+                                          icon: Icon(Icons.play_circle_outline),
+                                          color: Theme.of(context).primaryColor,
+                                          onPressed: () {
+                                            // TODO: Implement episode playback
+                                          },
+                                        ),
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => PodcastDetailsScreen(podcast: podcast),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ),
       ),
     );
+  }
+
+  String _formatDuration(int milliseconds) {
+    final duration = Duration(milliseconds: milliseconds);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    } else if (minutes > 0) {
+      return '${minutes}m ${seconds}s';
+    } else {
+      return '${seconds}s';
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return 'Today';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 }
