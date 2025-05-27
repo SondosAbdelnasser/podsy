@@ -447,7 +447,7 @@ class PodcastService {
                   publishDate: episode['published_at'] != null 
                       ? DateTime.parse(episode['published_at'] as String)
                       : DateTime.now(),
-                  duration: (episode['duration'] as int? ?? 0) * 1000,
+                  duration: _parseDurationString(episode['duration'] as String? ?? '00:00:00'),
                   imageUrl: '', // No image URL in episodes table
                 ))
             .toList();
@@ -470,6 +470,18 @@ class PodcastService {
       print('Stack trace: $stackTrace');
       throw Exception('Failed to load followed users episodes: $e');
     }
+  }
+
+  // Helper method to parse duration string
+  int _parseDurationString(String durationStr) {
+    final parts = durationStr.split(':');
+    if (parts.length == 3) {
+      final hours = int.parse(parts[0]);
+      final minutes = int.parse(parts[1]);
+      final seconds = int.parse(parts[2]);
+      return (hours * 3600 + minutes * 60 + seconds); // Convert to milliseconds
+    }
+    return 0;
   }
 }
 
