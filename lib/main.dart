@@ -67,7 +67,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => AuthWrapper(child: MainNavigation()),
         '/login': (context) => LoginScreen(),
         '/adminDashboard': (context) => AuthWrapper(child: AdminDashboardScreen()),
-        '/uploadPodcast': (context) => AuthWrapper(child: UploadPodcastScreen()),
+       // '/uploadPodcast': (context) => AuthWrapper(child: UploadPodcastScreen()),
         '/createPodcast': (context) => AuthWrapper(child: CreatePodcastScreen()),
         '/myPodcasts': (context) => AuthWrapper(child: UserPodcastsScreen()),
         '/profile': (context) => AuthWrapper(child: ProfileScreen()),

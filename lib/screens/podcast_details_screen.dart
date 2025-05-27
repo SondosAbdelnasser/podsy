@@ -3,6 +3,7 @@ import '../models/podcast.dart';
 import '../models/episode.dart' as episode_model;
 import '../services/podcast_service.dart';
 import 'package:just_audio/just_audio.dart';
+import 'upload_podcast.dart';
 import '../screens/play_screen.dart';
 
 class PodcastDetailsScreen extends StatefulWidget {
@@ -103,6 +104,22 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      floatingActionButton: _episodes.isNotEmpty ? FloatingActionButton(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => UploadEpisodeScreen(
+                podcastId: widget.podcast.id,
+                podcastTitle: widget.podcast.title,
+              ),
+            ),
+          );
+          _loadEpisodes();
+        },
+        child: Icon(Icons.add),
+        backgroundColor: Theme.of(context).primaryColor,
+      ) : null,
       body: CustomScrollView(
         slivers: [
           // Podcast Header
@@ -270,6 +287,27 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                                   style: TextStyle(
                                     color: Colors.grey[600],
                                     fontSize: 16,
+                                  ),
+                                ),
+                                SizedBox(height: 24),
+                                ElevatedButton.icon(
+                                  onPressed: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => UploadEpisodeScreen(
+                                          podcastId: widget.podcast.id,
+                                          podcastTitle: widget.podcast.title,
+                                        ),
+                                      ),
+                                    );
+                                    _loadEpisodes();
+                                  },
+                                  icon: Icon(Icons.add),
+                                  label: Text('Upload Episode'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Theme.of(context).primaryColor,
+                                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                                   ),
                                 ),
                               ],

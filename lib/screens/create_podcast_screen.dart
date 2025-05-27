@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../providers/auth_provider.dart';
 import '../services/podcast_service.dart';
 import '../models/podcast_collection.dart';
@@ -19,6 +21,7 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
   bool _isLoading = false;
   File? _imageFile;
   String? _imageFileName;
+  Uint8List? _imageBytes;
 
   @override
   void dispose() {
@@ -34,10 +37,15 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
         allowMultiple: false,
       );
 
-      if (result != null && result.files.single.path != null) {
+      if (result != null) {
         setState(() {
-          _imageFile = File(result.files.single.path!);
-          _imageFileName = result.files.single.name;
+          if (kIsWeb) {
+            _imageBytes = result.files.single.bytes;
+            _imageFileName = result.files.single.name;
+          } else {
+            _imageFile = File(result.files.single.path!);
+            _imageFileName = result.files.single.name;
+          }
         });
       }
     } catch (e) {
@@ -73,7 +81,12 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
         updatedAt: DateTime.now(),
       );
 
-      await _podcastService.createCollection(collection, imageFile: _imageFile);
+      await _podcastService.createCollection(
+        collection,
+        imageFile: _imageFile,
+        imageBytes: _imageBytes,
+        imageFileName: _imageFileName,
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -88,6 +101,7 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
       setState(() {
         _imageFile = null;
         _imageFileName = null;
+        _imageBytes = null;
       });
 
       // Navigate back
@@ -108,10 +122,13 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Create Podcast'),
+        title: Text(
+          'Create Podcast',
+          style: TextStyle(color: Colors.black),
+        ),
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -121,27 +138,109 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Title Field
+              TextFormField(
+                controller: _titleController,
+                style: TextStyle(color: Colors.black),
+                decoration: InputDecoration(
+                  labelText: 'Podcast Title',
+                  labelStyle: TextStyle(color: Colors.black87),
+                  hintText: 'Enter your podcast title',
+                  hintStyle: TextStyle(color: Colors.grey),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter a title';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 24),
+
+              // Description Field
+              TextFormField(
+                controller: _descriptionController,
+                style: TextStyle(color: Colors.black),
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                  labelStyle: TextStyle(color: Colors.black87),
+                  hintText: 'Enter your podcast description',
+                  hintStyle: TextStyle(color: Colors.grey),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                ),
+                maxLines: 4,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter a description';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 24),
+
               // Image Upload Section
+              Text(
+                'Cover Image (Optional)',
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(height: 8),
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
                   height: 200,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
+                    color: Colors.grey[100],
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: Colors.grey[300]!,
                       width: 1,
                     ),
                   ),
-                  child: _imageFile != null
+                  child: _imageFile != null || _imageBytes != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            _imageFile!,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
+                          child: kIsWeb
+                              ? Image.memory(
+                                  _imageBytes!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                )
+                              : Image.file(
+                                  _imageFile!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                ),
                         )
                       : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -170,49 +269,13 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
                         ),
                 ),
               ),
-              SizedBox(height: 24),
-
-              // Title Field
-              TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: 'Podcast Title',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 16),
-
-              // Description Field
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                maxLines: 4,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a description';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 24),
+              SizedBox(height: 32),
 
               // Create Button
               ElevatedButton(
                 onPressed: _isLoading ? null : _createPodcast,
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
                   padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -222,7 +285,11 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
                     ? CircularProgressIndicator(color: Colors.white)
                     : Text(
                         'Create Podcast',
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
               ),
             ],
