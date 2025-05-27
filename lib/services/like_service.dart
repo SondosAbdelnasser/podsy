@@ -1,5 +1,3 @@
-// lib/services/like_service.dart
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import '../models/like.dart';
@@ -25,30 +23,37 @@ class LikeService extends ChangeNotifier {
       createdAt: DateTime.now(),
     );
 
-    final response = await Supabase.instance.client
-        .from('likes')
-        .insert(like.toMap())
-        .execute();
+    try {
+      final response = await Supabase.instance.client
+          .from('likes')
+          .insert(like.toMap())
+          .select();
 
-    if (response.error == null) {
-      _isLiked = true;
-      notifyListeners();
-      print('Like saved');
-    } else {
-      print('Error saving like: ${response.error?.message}');
+      if (response.isEmpty) {
+        print('Insertion failed');
+      } else {
+        _isLiked = true;
+        notifyListeners();
+        print('Like saved: $response');
+      }
+    } catch (e) {
+      print('Error inserting like: $e');
     }
   }
 
   Future<void> checkIfLiked(String episodeId) async {
-    final response = await Supabase.instance.client
-        .from('likes')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('episode_id', episodeId)
-        .single()
-        .execute();
+    try {
+      final response = await Supabase.instance.client
+          .from('likes')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('episode_id', episodeId)
+          .maybeSingle();
 
-    _isLiked = response.data != null;
-    notifyListeners();
+      _isLiked = response != null;
+      notifyListeners();
+    } catch (e) {
+      print('Error checking like: $e');
+    }
   }
 }

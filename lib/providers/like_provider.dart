@@ -1,5 +1,3 @@
-// lib/providers/like_provider.dart
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,7 +9,7 @@ class LikeProvider with ChangeNotifier {
 
   bool get isLiked => _isLiked;
 
-  // Check if the user already liked the episode
+  /// already clicked like wla laa
   Future<void> checkIfLiked(String episodeId) async {
     try {
       final response = await Supabase.instance.client
@@ -19,24 +17,22 @@ class LikeProvider with ChangeNotifier {
           .select('id')
           .eq('user_id', userId)
           .eq('episode_id', episodeId)
-          .single()
-          .execute();
+          .maybeSingle();
 
-      _isLiked = response.data != null;
-      notifyListeners(); // Notifies listeners about the state change
+      _isLiked = response != null;
+      notifyListeners();
     } catch (e) {
       print("Error checking like status: $e");
     }
   }
 
-  // Toggle the like status (like/unlike)
+  /// like tany lw msh mawgod 
   Future<void> toggleLike(String episodeId) async {
     if (_isLiked) {
       print('User already liked this episode');
       return;
     }
 
-    // Add like to Supabase
     try {
       final response = await Supabase.instance.client
           .from('likes')
@@ -45,21 +41,21 @@ class LikeProvider with ChangeNotifier {
             'episode_id': episodeId,
             'created_at': DateTime.now().toIso8601String(),
           })
-         // .execute();
+          .select(); // مهم لجلب البيانات بعد الإدخال
 
-      if (response.error == null) {
-        _isLiked = true;
-        notifyListeners(); // Notifies listeners that the like state changed
-        print('Like added successfully');
+      if (response.isEmpty) {
+        print('Insert failed');
       } else {
-        print('Error adding like: ${response.error?.message}');
+        _isLiked = true;
+        notifyListeners();
+        print('Like added successfully');
       }
     } catch (e) {
       print("Error toggling like: $e");
     }
   }
 
-  // Unlike an episode (remove like)
+  /// حذف اللايك (إذا كان موجودًا)
   Future<void> removeLike(String episodeId) async {
     if (!_isLiked) {
       print('User hasn’t liked this episode');
@@ -71,15 +67,14 @@ class LikeProvider with ChangeNotifier {
           .from('likes')
           .delete()
           .eq('user_id', userId)
-          .eq('episode_id', episodeId)
-          //.execute();
+          .eq('episode_id', episodeId);
 
-      if (response.error == null) {
-        _isLiked = false;
-        notifyListeners(); // Notifies listeners that the like state changed
-        print('Like removed successfully');
+      if (response == null || (response is List && response.isEmpty)) {
+        print('Delete failed');
       } else {
-        print('Error removing like: ${response.error?.message}');
+        _isLiked = false;
+        notifyListeners();
+        print('Like removed successfully');
       }
     } catch (e) {
       print("Error removing like: $e");

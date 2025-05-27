@@ -1,8 +1,6 @@
-// lib/screens/play_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/audio_player_service ';
+import '../services/audio_pla';
 import '../services/like_service.dart';
 import '../models/episode.dart';
 import '../widgets/play_controls.dart';
@@ -19,7 +17,7 @@ class PlayScreen extends StatelessWidget {
     final audioPlayerService = Provider.of<AudioPlayerService>(context);
     final likeService = Provider.of<LikeService>(context);
 
-    // Check if the user has already liked the episode
+    // تحقق من حالة اللايك
     likeService.checkIfLiked(episode.id);
 
     return Scaffold(
@@ -31,7 +29,6 @@ class PlayScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Podcast Details Section
             PodcastDetails(
               title: episode.title,
               description: episode.description,
@@ -39,23 +36,20 @@ class PlayScreen extends StatelessWidget {
             ),
             SizedBox(height: 20),
 
-            // Like Button Section
             LikeButton(
               isLiked: likeService.isLiked,
               onPressed: () => likeService.toggleLike(episode.id),
             ),
 
-            // Share Button Section (You can implement a share button here)
             IconButton(
               icon: Icon(Icons.share),
               onPressed: () {
-                // Handle share functionality
+                // إضافة وظيفة المشاركة هنا
               },
             ),
 
             SizedBox(height: 20),
 
-            // Play Controls Section
             PlayControls(
               isPlaying: audioPlayerService.isPlaying,
               isLoading: audioPlayerService.isLoading,
@@ -65,6 +59,14 @@ class PlayScreen extends StatelessWidget {
                 } else {
                   audioPlayerService.playAudio(episode.audioUrl);
                 }
+              },
+              onSkipForwardPressed: () {
+                //
+                audioPlayerService.skipForward();
+              },
+              onSkipBackwardPressed: () {
+                // 
+                audioPlayerService.skipBackward();
               },
             ),
           ],
