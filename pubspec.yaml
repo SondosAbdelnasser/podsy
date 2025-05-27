@@ -45,6 +45,9 @@ dependencies:
   # Add any other packages:
   provider: ^6.1.2
   file_picker: ^10.1.9
+  http: ^1.1.0  # Added for API calls
+  just_audio: ^0.9.36  # Added for audio playback
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
 dev_dependencies:

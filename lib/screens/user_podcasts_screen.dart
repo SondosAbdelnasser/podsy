@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/podcast_service.dart';
 import '../models/podcast_collection.dart';
+import '../models/podcast.dart';
 import 'podcast_details_screen.dart';
 
 class UserPodcastsScreen extends StatefulWidget {
@@ -146,11 +147,23 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
                           return PodcastCard(
                             podcast: podcast,
                             onTap: () {
+                              final podcastModel = Podcast(
+                                id: podcast.id,
+                                title: podcast.title,
+                                author: 'User',
+                                description: podcast.description ?? '',
+                                imageUrl: '',
+                                feedUrl: '',
+                                episodes: [],
+                                category: 'Personal',
+                                rating: 0.0,
+                                episodeCount: 0,
+                              );
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      PodcastDetailsScreen(podcast: podcast),
+                                      PodcastDetailsScreen(podcast: podcastModel),
                                 ),
                               );
                             },

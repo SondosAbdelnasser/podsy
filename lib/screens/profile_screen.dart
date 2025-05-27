@@ -4,6 +4,7 @@ import '../providers/auth_provider.dart';
 import '../services/podcast_service.dart';
 import '../models/podcast_collection.dart';
 import 'podcast_details_screen.dart';
+import '../models/podcast.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -55,7 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final currentUser = authProvider.currentUser;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       body: RefreshIndicator(
         onRefresh: _loadPodcasts,
         child: CustomScrollView(
@@ -64,25 +65,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SliverAppBar(
               expandedHeight: 200,
               pinned: true,
-              backgroundColor: Colors.black,
+              backgroundColor: Colors.white,
+              iconTheme: IconThemeData(color: Colors.black),
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(
                   currentUser?.name ?? 'Profile',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: Colors.black),
                 ),
                 background: Container(
-                  color: Colors.white10,
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       CircleAvatar(
                         radius: 50,
-                        backgroundColor: Theme.of(context).primaryColor,
+                        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
                         child: Text(
                           (currentUser?.name ?? 'U')[0].toUpperCase(),
                           style: TextStyle(
                             fontSize: 40,
-                            color: Colors.white,
+                            color: Theme.of(context).primaryColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -91,7 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text(
                         currentUser?.email ?? '',
                         style: TextStyle(
-                          color: Colors.white70,
+                          color: Colors.black87,
                           fontSize: 16,
                         ),
                       ),
@@ -102,6 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               actions: [
                 IconButton(
                   icon: Icon(Icons.logout),
+                  color: Colors.black87,
                   onPressed: () async {
                     await authProvider.signOut();
                     Navigator.pushReplacementNamed(context, '/login');
@@ -120,13 +123,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Text(
                       'My Podcasts',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.add, color: Colors.white),
+                      icon: Icon(Icons.add, color: Theme.of(context).primaryColor),
                       onPressed: () async {
                         await Navigator.pushNamed(context, '/createPodcast');
                         _loadPodcasts();
@@ -151,7 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Text(
                                 'Error loading podcasts',
                                 style: TextStyle(
-                                    color: Colors.white, fontSize: 16),
+                                    color: Colors.black87, fontSize: 16),
                               ),
                               SizedBox(height: 8),
                               Text(
@@ -163,6 +166,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ElevatedButton(
                                 onPressed: _loadPodcasts,
                                 child: Text('Retry'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(context).primaryColor,
+                                ),
                               ),
                             ],
                           ),
@@ -177,13 +183,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Icon(
                                     Icons.mic_none,
                                     size: 64,
-                                    color: Colors.white54,
+                                    color: Colors.grey[400],
                                   ),
                                   SizedBox(height: 16),
                                   Text(
                                     'No podcasts yet',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: Colors.black,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -192,7 +198,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Text(
                                     'Create your first podcast!',
                                     style: TextStyle(
-                                      color: Colors.white54,
+                                      color: Colors.grey[600],
                                       fontSize: 16,
                                     ),
                                   ),
@@ -206,6 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     icon: Icon(Icons.add),
                                     label: Text('Create Podcast'),
                                     style: ElevatedButton.styleFrom(
+                                      backgroundColor: Theme.of(context).primaryColor,
                                       padding: EdgeInsets.symmetric(
                                           horizontal: 24, vertical: 12),
                                     ),
@@ -221,20 +228,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 return PodcastCard(
                                   podcast: podcast,
                                   onTap: () {
+                                    final podcastModel = Podcast(
+                                      id: podcast.id,
+                                      title: podcast.title,
+                                      author: 'User', // Default author
+                                      description: podcast.description ?? '',
+                                      imageUrl: '', // Default empty image
+                                      feedUrl: '', // Default empty feed
+                                      episodes: [], // Will be loaded in details screen
+                                      category: 'Personal', // Default category
+                                      rating: 0.0, // Default rating
+                                      episodeCount: 0, // Will be updated in details screen
+                                    );
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            PodcastDetailsScreen(
-                                                podcast: podcast),
+                                            PodcastDetailsScreen(podcast: podcastModel),
                                       ),
                                     );
                                   },
                                 );
                               },
                               childCount: _podcasts.length,
-                            ),
-                          ),
+              ),
+            ),
           ],
         ),
       ),
@@ -256,9 +274,11 @@ class PodcastCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.white10,
+      color: Colors.white,
+      elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[200]!, width: 1),
       ),
       child: InkWell(
         onTap: onTap,
@@ -280,7 +300,7 @@ class PodcastCard extends StatelessWidget {
                     child: Text(
                       podcast.title,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -288,7 +308,7 @@ class PodcastCard extends StatelessWidget {
                   ),
                   Icon(
                     Icons.chevron_right,
-                    color: Colors.white54,
+                    color: Colors.grey[400],
                   ),
                 ],
               ),
@@ -299,7 +319,7 @@ class PodcastCard extends StatelessWidget {
                   child: Text(
                     podcast.description!,
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.grey[600],
                       fontSize: 14,
                     ),
                     maxLines: 2,
@@ -311,7 +331,7 @@ class PodcastCard extends StatelessWidget {
                 child: Text(
                   'Created ${_formatDate(podcast.createdAt)}',
                   style: TextStyle(
-                    color: Colors.white38,
+                    color: Colors.grey[500],
                     fontSize: 12,
                   ),
                 ),

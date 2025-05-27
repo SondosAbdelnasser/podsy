@@ -7,16 +7,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'providers/auth_provider.dart'; 
-import 'screens/home_screen.dart';    
 import 'screens/login_screen.dart';   
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/create_podcast_screen.dart';
 import 'screens/user_podcasts_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/main_navigation.dart';
 import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
-import 'screens/podcast_home.dart';
-import 'screens/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,7 +47,7 @@ class MyApp extends StatelessWidget {
       home: AuthForm(),
       routes: {
         '/onboarding': (context)=> OnboardingScreen(),
-        '/home': (context) => Home(),
+        '/home': (context) => MainNavigation(),
         '/login': (context) => LoginScreen(),
         '/adminDashboard': (context) => AdminDashboardScreen(),
         '/uploadPodcast': (context) => UploadPodcastScreen(),
