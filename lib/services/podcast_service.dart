@@ -30,18 +30,31 @@ class PodcastService {
     }
   }
 
-  Future<String?> uploadPodcastImage(File imageFile, String collectionId) async {
+  Future<String?> uploadPodcastImage({
+    File? imageFile,
+    Uint8List? imageBytes,
+    String? imageFileName,
+    required String collectionId,
+  }) async {
     try {
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${imageFile.path.split('/').last}';
+      final fileName = imageFileName ?? '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final filePath = 'podcast-images/$collectionId/$fileName';
       
       // Upload the image file
-      await client.storage
-          .from('podcast-files')
-          .upload(filePath, imageFile, fileOptions: FileOptions(
-            cacheControl: '3600',
-            upsert: true
-          ));
+      if (kIsWeb) {
+        if (imageBytes == null) throw Exception('No image bytes provided for web upload');
+        await client.storage
+            .from('podcast-files')
+            .uploadBinary(filePath, imageBytes);
+      } else {
+        if (imageFile == null) throw Exception('No image file provided for mobile upload');
+        await client.storage
+            .from('podcast-files')
+            .upload(filePath, imageFile, fileOptions: FileOptions(
+              cacheControl: '3600',
+              upsert: true
+            ));
+      }
 
       // Get the public URL
       return client.storage
@@ -53,7 +66,12 @@ class PodcastService {
     }
   }
 
-  Future<PodcastCollection> createCollection(PodcastCollection collection, {File? imageFile}) async {
+  Future<PodcastCollection> createCollection(
+    PodcastCollection collection, {
+    File? imageFile,
+    Uint8List? imageBytes,
+    String? imageFileName,
+  }) async {
     try {
       // First create the collection to get an ID
       final response = await client
@@ -65,8 +83,14 @@ class PodcastService {
       final createdCollection = PodcastCollection.fromMap(response as Map<String, dynamic>, response['id'] as String);
 
       // If an image was provided, upload it and update the collection
-      if (imageFile != null) {
-        final imageUrl = await uploadPodcastImage(imageFile, createdCollection.id);
+      if (imageFile != null || imageBytes != null) {
+        final imageUrl = await uploadPodcastImage(
+          imageFile: imageFile,
+          imageBytes: imageBytes,
+          imageFileName: imageFileName,
+          collectionId: createdCollection.id,
+        );
+        
         if (imageUrl != null) {
           // Update the collection with the image URL
           await client
