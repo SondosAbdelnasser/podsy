@@ -27,15 +27,64 @@ class PodcastService {
     }
   }
 
-  Future<PodcastCollection> createCollection(PodcastCollection collection) async {
+  Future<String?> uploadPodcastImage(File imageFile, String collectionId) async {
     try {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${imageFile.path.split('/').last}';
+      final filePath = 'podcast-images/$collectionId/$fileName';
+      
+      // Upload the image file
+      await client.storage
+          .from('podcast-files')
+          .upload(filePath, imageFile, fileOptions: FileOptions(
+            cacheControl: '3600',
+            upsert: true
+          ));
+
+      // Get the public URL
+      return client.storage
+          .from('podcast-files')
+          .getPublicUrl(filePath);
+    } catch (e) {
+      print('Error uploading podcast image: $e');
+      return null;
+    }
+  }
+
+  Future<PodcastCollection> createCollection(PodcastCollection collection, {File? imageFile}) async {
+    try {
+      // First create the collection to get an ID
       final response = await client
           .from('podcast_collections')
           .insert(collection.toMap())
           .select()
           .single();
       
-      return PodcastCollection.fromMap(response as Map<String, dynamic>, response['id'] as String);
+      final createdCollection = PodcastCollection.fromMap(response as Map<String, dynamic>, response['id'] as String);
+
+      // If an image was provided, upload it and update the collection
+      if (imageFile != null) {
+        final imageUrl = await uploadPodcastImage(imageFile, createdCollection.id);
+        if (imageUrl != null) {
+          // Update the collection with the image URL
+          await client
+              .from('podcast_collections')
+              .update({'image_url': imageUrl})
+              .eq('id', createdCollection.id);
+          
+          // Return updated collection
+          return PodcastCollection(
+            id: createdCollection.id,
+            userId: createdCollection.userId,
+            title: createdCollection.title,
+            description: createdCollection.description,
+            imageUrl: imageUrl,
+            createdAt: createdCollection.createdAt,
+            updatedAt: createdCollection.updatedAt,
+          );
+        }
+      }
+      
+      return createdCollection;
     } catch (e) {
       throw Exception('Failed to create collection: ${e.toString()}');
     }
@@ -322,7 +371,7 @@ class PodcastService {
           title: doc['title'] as String? ?? '',
           author: 'User', // Default author since it's not in the schema
           description: doc['description'] as String? ?? '',
-          imageUrl: '', // No cover URL in schema
+          imageUrl: doc['image_url'] as String? ?? '', // Use the image URL from the collection
           feedUrl: '', // No feed URL in schema
           episodes: episodes,
           category: 'Personal', // Default category since it's not in the schema
