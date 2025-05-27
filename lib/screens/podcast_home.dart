@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../widgets/podcast_card.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../services/podcast_service.dart';
+import '../models/podcast.dart';
+import '../widgets/podcast_card.dart' as widgets;
 import '../widgets/episode_tile.dart';
+import 'profile_screen.dart';
+import 'podcast_details_screen.dart';
 import 'users_list_page.dart';
 
 class Home extends StatefulWidget {
@@ -12,54 +17,66 @@ class Home extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<Home> {
-  final supabase = Supabase.instance.client;
-
-  List<dynamic> trendingPodcasts = [];
-  List<dynamic> newEpisodes = [];
-  bool isLoading = true;
-
-  Future<void> fetchData() async {
-    setState(() => isLoading = true);
-
-    try {
-      final podcastResponse = await supabase
-          .from('podcasts')
-          .select()
-          .order('likes', ascending: false)
-          .limit(5);
-
-      final episodeResponse = await supabase
-          .from('episodes')
-          .select()
-          .order('created_at', ascending: false)
-          .limit(10);
-
-      setState(() {
-        trendingPodcasts = podcastResponse;
-        newEpisodes = episodeResponse;
-      });
-    } catch (e) {
-      print("Error fetching data: $e");
-    }
-
-    setState(() => isLoading = false);
-  }
+  final PodcastService _podcastService = PodcastService();
+  List<Podcast> _podcasts = [];
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+    _loadPodcasts();
+  }
+
+  Future<void> _loadPodcasts() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final podcasts = await _podcastService.getAllPodcasts();
+      setState(() {
+        _podcasts = podcasts;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final currentUser = authProvider.currentUser;
+    
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text(
-          'Discover',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Colors.black),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        title: Row(
+          children: [
+            Text(
+              'Podsy',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+            SizedBox(width: 8),
+            Icon(Icons.mic, color: Theme.of(context).primaryColor, size: 20),
+          ],
         ),
         actions: [
           IconButton(
@@ -71,53 +88,232 @@ class _HomeScreenState extends State<Home> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {},
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Welcome back',
+                      style: TextStyle(
+                        color: Colors.black54,
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      currentUser?.name?.split(' ')[0] ?? 'User',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ProfileScreen()),
+                    );
+                  },
+                  child: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                    child: Text(
+                      (currentUser?.name ?? 'U')[0].toUpperCase(),
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: fetchData,
-              child: ListView(
-                padding: const EdgeInsets.all(16.0),
-                children: [
-                  const Text(
-                    'Trending Podcasts',
-                    style: TextStyle(fontSize: 20, color: Colors.white70),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 240,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: trendingPodcasts.length,
-                      itemBuilder: (context, index) {
-                        final podcast = trendingPodcasts[index];
-                        return PodcastCard(podcast: podcast);
-                      },
+      drawer: Drawer(
+        child: Container(
+          color: Colors.white,
+          child: ListView(
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                      child: Text(
+                        (currentUser?.name ?? 'U')[0].toUpperCase(),
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'New Episodes',
-                    style: TextStyle(fontSize: 20, color: Colors.white70),
-                  ),
-                  const SizedBox(height: 16),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: newEpisodes.length,
-                    itemBuilder: (context, index) {
-                      final episode = newEpisodes[index];
-                      return EpisodeTile(episode: episode);
-                    },
-                  ),
-                ],
+                    SizedBox(height: 10),
+                    Text(
+                      currentUser?.name ?? 'User',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      currentUser?.email ?? '',
+                      style: TextStyle(
+                        color: Colors.black54,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              ListTile(
+                leading: Icon(Icons.account_circle, color: Colors.black87),
+                title: Text('Profile', style: TextStyle(color: Colors.black87)),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ProfileScreen()),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.mic, color: Colors.black87),
+                title: Text('My Podcasts', style: TextStyle(color: Colors.black87)),
+                onTap: () {
+                  Navigator.pushNamed(context, '/myPodcasts');
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.add_circle_outline, color: Colors.black87),
+                title: Text('Create Podcast', style: TextStyle(color: Colors.black87)),
+                onTap: () {
+                  Navigator.pushNamed(context, '/createPodcast');
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      body: RefreshIndicator(
+        onRefresh: _loadPodcasts,
+        child: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Error loading podcasts',
+                          style: TextStyle(color: Colors.black87, fontSize: 16),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          _error!,
+                          style: TextStyle(color: Colors.red, fontSize: 14),
+                        ),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _loadPodcasts,
+                          child: Text('Retry'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : _podcasts.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.mic_none,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'No podcasts yet',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Be the first to create a podcast!',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text(
+                                'All Podcasts',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              height: 280, // Fixed height for horizontal scrolling
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                itemCount: _podcasts.length,
+                                itemBuilder: (context, index) {
+                                  final podcast = _podcasts[index];
+                                  return Container(
+                                    width: 200, // Fixed width for each podcast card
+                                    margin: EdgeInsets.only(right: 16),
+                                    child: widgets.PodcastCard(
+                                      podcast: podcast,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => PodcastDetailsScreen(podcast: podcast),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+      ),
     );
   }
 }

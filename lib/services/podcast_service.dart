@@ -1,9 +1,11 @@
-
 //claude hwa wel screen bta3 upload 
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/podcast_collection.dart';
-import '../models/episode.dart';
+import '../models/episode.dart' as episode_model;
+import '../models/podcast.dart' as podcast_model;
 import '../utils/supabase_config.dart';
 
 class PodcastService {
@@ -62,29 +64,48 @@ class PodcastService {
     required String collectionId,
     required String title,
     String? description,
-    required File audioFile,
+    File? audioFile, // for mobile
+    Uint8List? audioBytes, // for web
+    String? audioFileName,
   }) async {
     try {
-      // Upload audio file to Supabase Storage
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${audioFile.path.split('/').last}';
+      final fileName = audioFileName ?? '${DateTime.now().millisecondsSinceEpoch}.mp3';
       final filePath = 'podcasts/$collectionId/$fileName';
       
-      await client.storage
-          .from('podcast-files')
-          .upload(filePath, audioFile);
+      if (kIsWeb) {
+        if (audioBytes == null) throw Exception('No audio bytes provided for web upload');
+        await client.storage
+            .from('podcast-files')
+            .uploadBinary(filePath, audioBytes);
+      } else {
+        if (audioFile == null) throw Exception('No audio file provided for mobile upload');
+        await client.storage
+            .from('podcast-files')
+            .upload(filePath, audioFile);
+      }
 
       // Get the public URL of the uploaded file
-      final audioUrl = client.storage
-          .from('podcast-files')
-          .getPublicUrl(filePath);
+      String audioUrl;
+      try {
+        audioUrl = client.storage
+            .from('podcast-files')
+            .getPublicUrl(filePath);
+      } catch (urlError) {
+        throw Exception('Failed to get public URL: ${urlError.toString()}');
+      }
 
-      // Get audio duration (simplified - you might want to use a package like audioplayers for accurate duration)
-      final fileStat = await audioFile.stat();
-      final estimatedDuration = Duration(seconds: (fileStat.size / 16000).round()); // Rough estimate
+      Duration estimatedDuration;
+      if (!kIsWeb && audioFile != null) {
+        final fileStat = await audioFile.stat();
+        estimatedDuration = Duration(seconds: (fileStat.size / 16000).round());
+      } else if (kIsWeb && audioBytes != null) {
+        estimatedDuration = Duration(seconds: (audioBytes.length / 16000).round());
+      } else {
+        estimatedDuration = Duration.zero;
+      }
 
-      // Create episode record in database
-      final episode = Episode(
-        id: '', // Will be set by Supabase
+      final episode = episode_model.Episode(
+        id: '',
         collectionId: collectionId,
         title: title,
         description: description,
@@ -95,16 +116,28 @@ class PodcastService {
         updatedAt: DateTime.now(),
       );
 
-      await client
-          .from('episodes')
-          .insert(episode.toMap());
+      try {
+        await client
+            .from('episodes')
+            .insert(episode.toMap());
+      } catch (dbError) {
+        // If database insert fails, try to clean up the uploaded file
+        try {
+          await client.storage
+              .from('podcast-files')
+              .remove([filePath]);
+        } catch (cleanupError) {
+          print('Failed to cleanup storage after db error: ${cleanupError.toString()}');
+        }
+        throw Exception('Failed to create episode record: ${dbError.toString()}');
+      }
 
     } catch (e) {
-      throw Exception('Failed to upload episode: ${e.toString()}');
+      throw Exception('Upload process failed: ${e.toString()}');
     }
   }
 
-  Future<List<Episode>> getCollectionEpisodes(String collectionId) async {
+  Future<List<episode_model.Episode>> getCollectionEpisodes(String collectionId) async {
     try {
       final response = await client
           .from('episodes')
@@ -112,15 +145,40 @@ class PodcastService {
           .eq('collection_id', collectionId)
           .order('published_at', ascending: false);
       
-      return (response as List)
-          .map((doc) => Episode.fromMap(doc as Map<String, dynamic>, doc['id'] as String))
-          .toList();
+      return (response as List).map((doc) {
+        // Parse duration string (format: "HH:MM:SS")
+        int durationInSeconds = 0;
+        if (doc['duration'] != null) {
+          final durationStr = doc['duration'] as String;
+          final parts = durationStr.split(':');
+          if (parts.length == 3) {
+            durationInSeconds = int.parse(parts[0]) * 3600 + // hours
+                              int.parse(parts[1]) * 60 +    // minutes
+                              int.parse(parts[2]);          // seconds
+          }
+        }
+
+        return episode_model.Episode(
+          id: doc['id'] as String? ?? '',
+          collectionId: doc['collection_id'] as String? ?? '',
+          title: doc['title'] as String? ?? '',
+          description: doc['description'] as String?,
+          audioUrl: doc['audio_url'] as String? ?? '',
+          duration: Duration(seconds: durationInSeconds),
+          publishedAt: doc['published_at'] != null 
+              ? DateTime.parse(doc['published_at'] as String)
+              : null,
+          createdAt: DateTime.parse(doc['created_at'] as String),
+          updatedAt: DateTime.parse(doc['updated_at'] as String),
+        );
+      }).toList();
     } catch (e) {
+      print('Error in getCollectionEpisodes: $e'); // Add logging
       throw Exception('Failed to fetch episodes: ${e.toString()}');
     }
   }
 
-  Future<Episode?> getEpisodeById(String episodeId) async {
+  Future<episode_model.Episode?> getEpisodeById(String episodeId) async {
     try {
       final response = await client
           .from('episodes')
@@ -129,7 +187,7 @@ class PodcastService {
           .maybeSingle();
       
       if (response != null) {
-        return Episode.fromMap(response as Map<String, dynamic>, response['id'] as String);
+        return episode_model.Episode.fromMap(response as Map<String, dynamic>, response['id'] as String);
       }
       return null;
     } catch (e) {
@@ -163,9 +221,9 @@ class PodcastService {
     }
   }
 
-  Future<void> updateEpisode(Episode episode) async {
+  Future<void> updateEpisode(episode_model.Episode episode) async {
     try {
-      final updatedEpisode = Episode(
+      final updatedEpisode = episode_model.Episode(
         id: episode.id,
         collectionId: episode.collectionId,
         title: episode.title,
@@ -187,7 +245,7 @@ class PodcastService {
   }
 
   // Get all public episodes (for discovery)
-  Future<List<Episode>> getAllEpisodes({int limit = 20, int offset = 0}) async {
+  Future<List<episode_model.Episode>> getAllEpisodes({int limit = 20, int offset = 0}) async {
     try {
       final response = await client
           .from('episodes')
@@ -199,10 +257,74 @@ class PodcastService {
           .range(offset, offset + limit - 1);
       
       return (response as List)
-          .map((doc) => Episode.fromMap(doc as Map<String, dynamic>, doc['id'] as String))
+          .map((doc) => episode_model.Episode.fromMap(doc as Map<String, dynamic>, doc['id'] as String))
           .toList();
     } catch (e) {
       throw Exception('Failed to fetch all episodes: ${e.toString()}');
     }
   }
+
+  // Get all podcasts
+  Future<List<podcast_model.Podcast>> getAllPodcasts() async {
+    try {
+      final response = await client
+          .from('podcast_collections')
+          .select('''
+            *,
+            episodes(*)
+          ''')
+          .order('created_at', ascending: false);
+      
+      return (response as List).map((doc) {
+        final episodes = (doc['episodes'] as List? ?? [])
+            .map((episode) {
+              // Parse duration string (format: "HH:MM:SS")
+              int durationInSeconds = 0;
+              if (episode['duration'] != null) {
+                final durationStr = episode['duration'] as String;
+                final parts = durationStr.split(':');
+                if (parts.length == 3) {
+                  durationInSeconds = int.parse(parts[0]) * 3600 + // hours
+                                    int.parse(parts[1]) * 60 +    // minutes
+                                    int.parse(parts[2]);          // seconds
+                }
+              }
+
+              return podcast_model.Episode(
+                id: episode['id'] as String? ?? '',
+                title: episode['title'] as String? ?? '',
+                description: episode['description'] as String? ?? '',
+                audioUrl: episode['audio_url'] as String? ?? '',
+                publishDate: episode['published_at'] != null 
+                    ? DateTime.parse(episode['published_at'] as String)
+                    : DateTime.now(),
+                duration: durationInSeconds * 1000, // Convert to milliseconds
+                imageUrl: '', // No image URL in episodes table
+              );
+            })
+            .toList();
+        
+        return podcast_model.Podcast(
+          id: doc['id'] as String? ?? '',
+          title: doc['title'] as String? ?? '',
+          author: 'User', // Default author since it's not in the schema
+          description: doc['description'] as String? ?? '',
+          imageUrl: '', // No cover URL in schema
+          feedUrl: '', // No feed URL in schema
+          episodes: episodes,
+          category: 'Personal', // Default category since it's not in the schema
+          rating: 0.0, // Default rating since it's not in the schema
+          episodeCount: episodes.length,
+        );
+      }).toList();
+    } catch (e) {
+      print('Error in getAllPodcasts: $e'); // Add logging
+      throw Exception('Failed to fetch podcasts: ${e.toString()}');
+    }
+  }
 }
+
+////////////////////////////////////////////////////////
+
+
+
