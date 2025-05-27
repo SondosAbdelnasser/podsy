@@ -47,9 +47,22 @@ class AudioPlayerService extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ==== two function al kona fakrnhom ready w tl3o ehna albn3mlhom =======
+
+  Future<void> skipForward() async {
+    final duration = _audioPlayer.duration ?? Duration.zero;
+    final newPosition = _currentPosition + Duration(seconds: 10);
+    await _audioPlayer.seek(newPosition > duration ? duration : newPosition);
+  }
+
+  Future<void> skipBackward() async {
+    final newPosition = _currentPosition - Duration(seconds: 10);
+    await _audioPlayer.seek(newPosition.isNegative ? Duration.zero : newPosition);
+  }
+
   @override
   void dispose() {
-    super.dispose();
     _audioPlayer.dispose();
+    super.dispose();
   }
 }
