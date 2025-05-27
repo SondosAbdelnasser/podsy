@@ -13,9 +13,11 @@ import 'screens/create_podcast_screen.dart';
 import 'screens/user_podcasts_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/main_navigation.dart';
+import 'screens/users_list_page.dart';
 import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
 import 'services/audio_player_service.dart';
+import 'widgets/auth_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,8 +36,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => AudioPlayerService()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ],
-          child: MyApp(),
+      ],
+      child: MyApp(),
     ),
   );
 }
@@ -51,14 +53,14 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.darkTheme,
       home: AuthForm(),
       routes: {
-        '/onboarding': (context)=> OnboardingScreen(),
-        '/home': (context) => MainNavigation(),
+        '/onboarding': (context) => OnboardingScreen(),
+        '/home': (context) => AuthWrapper(child: MainNavigation()),
         '/login': (context) => LoginScreen(),
-        '/adminDashboard': (context) => AdminDashboardScreen(),
-        '/uploadPodcast': (context) => UploadPodcastScreen(),
-        '/createPodcast': (context) => CreatePodcastScreen(),
-        '/myPodcasts': (context) => UserPodcastsScreen(),
-        '/profile': (context) => ProfileScreen(),
+        '/adminDashboard': (context) => AuthWrapper(child: AdminDashboardScreen()),
+        '/uploadPodcast': (context) => AuthWrapper(child: UploadPodcastScreen()),
+        '/createPodcast': (context) => AuthWrapper(child: CreatePodcastScreen()),
+        '/myPodcasts': (context) => AuthWrapper(child: UserPodcastsScreen()),
+        '/profile': (context) => AuthWrapper(child: ProfileScreen()),
       },
     );
   }

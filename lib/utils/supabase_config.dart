@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SupabaseConfig {
   static const String supabaseUrl = 'https://baxcgruzuycxpllcpqqw.supabase.co';
@@ -23,5 +24,9 @@ class SupabaseConfig {
       print('Failed to initialize Supabase: ${e.toString()}');
       rethrow;
     }
+  }
+
+  static Future<void> setAuthUser(String userId) async {
+    // No-op: We use Firebase for auth, Supabase for DB only
   }
 } 

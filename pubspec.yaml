@@ -46,6 +46,7 @@ dependencies:
   # Add any other packages:
   provider: ^6.1.2
   file_picker: ^10.1.9
+  path: ^1.9.1
   http: ^1.1.0  # Added for API calls
   just_audio: ^0.9.36  # Added for audio playback
 
