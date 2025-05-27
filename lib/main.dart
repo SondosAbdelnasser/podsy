@@ -7,14 +7,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'providers/auth_provider.dart'; 
-import 'screens/home_screen.dart';    
 import 'screens/login_screen.dart';   
 import 'screens/admin_dashboard_screen.dart';
+import 'screens/create_podcast_screen.dart';
+import 'screens/user_podcasts_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/main_navigation.dart';
 import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
-import 'package:flutter/material.dart';
-import 'screens/podcast_home.dart';
-import 'screens/onboarding_screen.dart';
+import 'services/audio_player_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,9 +29,13 @@ void main() async {
   await SupabaseConfig.initialize();
   
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthProvider(),
-      child: MyApp(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AudioPlayerService()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ],
+          child: MyApp(),
     ),
   );
 }
@@ -40,7 +45,6 @@ class MyApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    
     return MaterialApp(
       title: 'Podsy',
       debugShowCheckedModeBanner: false,
@@ -48,33 +52,59 @@ class MyApp extends StatelessWidget {
       home: AuthForm(),
       routes: {
         '/onboarding': (context)=> OnboardingScreen(),
-        '/home': (context) => Home(),
+        '/home': (context) => MainNavigation(),
         '/login': (context) => LoginScreen(),
         '/adminDashboard': (context) => AdminDashboardScreen(),
-        //'/uploadPodcast': (context) => UploadPodcastScreen(), // Add this line
+        '/uploadPodcast': (context) => UploadPodcastScreen(),
+        '/createPodcast': (context) => CreatePodcastScreen(),
+        '/myPodcasts': (context) => UserPodcastsScreen(),
+        '/profile': (context) => ProfileScreen(),
       },
-      
-    );
-    
-
-
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Home')),
-      body: Center(
-        child: ElevatedButton.icon(
-          onPressed: () {
-            Navigator.pushNamed(context, '/uploadPodcast');
-          },
-          icon: Icon(Icons.upload),
-          label: Text('Upload Podcast'),
-        ),
-      ),
     );
   }
 }
+
+// class HomeScreen extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Home'),
+//         backgroundColor: Colors.black,
+//         foregroundColor: Colors.white,
+//         elevation: 0,
+//       ),
+//       backgroundColor: Colors.black,
+//       body: Center(
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             ElevatedButton.icon(
+//               onPressed: () {
+//                 Navigator.pushNamed(context, '/myPodcasts');
+//               },
+//               icon: Icon(Icons.mic),
+//               label: Text('My Podcasts'),
+//               style: ElevatedButton.styleFrom(
+//                 padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+//                 textStyle: TextStyle(fontSize: 18),
+//               ),
+//             ),
+//             SizedBox(height: 16),
+//             ElevatedButton.icon(
+//               onPressed: () {
+//                 Navigator.pushNamed(context, '/createPodcast');
+//               },
+//               icon: Icon(Icons.add),
+//               label: Text('Create New Podcast'),
+//               style: ElevatedButton.styleFrom(
+//                 padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+//                 textStyle: TextStyle(fontSize: 18),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }

@@ -1,31 +1,83 @@
 import 'package:flutter/material.dart';
-import '../models/like.dart';
-import '../services/like_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LikeProvider with ChangeNotifier {
-  final LikeService _likeService = LikeService();
-  List<Like> _likes = [];
+  final String userId;
+  bool _isLiked = false;
 
-  List<Like> get likes => _likes;
+  LikeProvider({required this.userId});
 
-  Future<void> loadLikes(String userId) async {
-    _likes = await _likeService.fetchLikesByUser(userId);
-    notifyListeners();
-  }
+  bool get isLiked => _isLiked;
 
-  bool isEpisodeLiked(String episodeId) {
-    return _likes.any((like) => like.episodeId == episodeId);
-  }
+  /// already clicked like wla laa
+  Future<void> checkIfLiked(String episodeId) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('likes')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('episode_id', episodeId)
+          .maybeSingle();
 
-  Future<void> toggleLike(String userId, String episodeId) async {
-    final isLiked = isEpisodeLiked(episodeId);
-    if (isLiked) {
-      await _likeService.removeLike(userId, episodeId);
-      _likes.removeWhere((like) => like.episodeId == episodeId);
-    } else {
-      await _likeService.addLike(userId, episodeId);
-      await loadLikes(userId); // Refresh from backend
+      _isLiked = response != null;
+      notifyListeners();
+    } catch (e) {
+      print("Error checking like status: $e");
     }
-    notifyListeners();
+  }
+
+  /// like tany lw msh mawgod 
+  Future<void> toggleLike(String episodeId) async {
+    if (_isLiked) {
+      print('User already liked this episode');
+      return;
+    }
+
+    try {
+      final response = await Supabase.instance.client
+          .from('likes')
+          .insert({
+            'user_id': userId,
+            'episode_id': episodeId,
+            'created_at': DateTime.now().toIso8601String(),
+          })
+          .select(); // مهم لجلب البيانات بعد الإدخال
+
+      if (response.isEmpty) {
+        print('Insert failed');
+      } else {
+        _isLiked = true;
+        notifyListeners();
+        print('Like added successfully');
+      }
+    } catch (e) {
+      print("Error toggling like: $e");
+    }
+  }
+
+  /// حذف اللايك (إذا كان موجودًا)
+  Future<void> removeLike(String episodeId) async {
+    if (!_isLiked) {
+      print('User hasn’t liked this episode');
+      return;
+    }
+
+    try {
+      final response = await Supabase.instance.client
+          .from('likes')
+          .delete()
+          .eq('user_id', userId)
+          .eq('episode_id', episodeId);
+
+      if (response == null || (response is List && response.isEmpty)) {
+        print('Delete failed');
+      } else {
+        _isLiked = false;
+        notifyListeners();
+        print('Like removed successfully');
+      }
+    } catch (e) {
+      print("Error removing like: $e");
+    }
   }
 }

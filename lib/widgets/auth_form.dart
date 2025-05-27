@@ -110,7 +110,7 @@ class _AuthFormState extends State<AuthForm> {
     final themeColor = Color(0xFF6A1B9A);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -138,22 +138,29 @@ class _AuthFormState extends State<AuthForm> {
                               controller: _emailController,
                               decoration: InputDecoration(
                                 labelText: "Email",
-                                labelStyle: TextStyle(color: Colors.white70),
+                                labelStyle: TextStyle(color: Colors.grey[600]),
                                 filled: true,
-                                fillColor: Colors.white10,
+                                fillColor: Colors.grey[100],
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide.none,
                                 ),
+                                helperText: "Enter your email address",
+                                helperStyle: TextStyle(color: Colors.grey[500], fontSize: 12),
+                                errorStyle: TextStyle(
+                                  color: Colors.red[400],
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: Colors.black87),
                               keyboardType: TextInputType.emailAddress,
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return 'Email is required';
+                                  return 'Please enter your email';
                                 }
                                 if (!value.contains('@')) {
-                                  return 'Enter a valid email';
+                                  return 'Please enter a valid email address';
                                 }
                                 return null;
                               },
@@ -163,19 +170,26 @@ class _AuthFormState extends State<AuthForm> {
                               controller: _passwordController,
                               decoration: InputDecoration(
                                 labelText: "Password",
-                                labelStyle: TextStyle(color: Colors.white70),
+                                labelStyle: TextStyle(color: Colors.grey[600]),
                                 filled: true,
-                                fillColor: Colors.white10,
+                                fillColor: Colors.grey[100],
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide.none,
                                 ),
+                                helperText: "Password must be at least 6 characters",
+                                helperStyle: TextStyle(color: Colors.grey[500], fontSize: 12),
+                                errorStyle: TextStyle(
+                                  color: Colors.red[400],
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: Colors.black87),
                               obscureText: true,
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return 'Password is required';
+                                  return 'Please enter your password';
                                 }
                                 if (value.length < 6) {
                                   return 'Password must be at least 6 characters';
@@ -193,6 +207,7 @@ class _AuthFormState extends State<AuthForm> {
                               style: ElevatedButton.styleFrom(
                                 minimumSize: Size(double.infinity, 50),
                                 backgroundColor: themeColor,
+                                foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -204,7 +219,7 @@ class _AuthFormState extends State<AuthForm> {
                                 _isLogin
                                     ? "Don't have an account? Sign up"
                                     : "Already have an account? Sign in",
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(color: Colors.grey[600]),
                               ),
                             ),
                             if (_isLogin)
@@ -213,16 +228,15 @@ class _AuthFormState extends State<AuthForm> {
                                 child: Text("Forgot Password?", style: TextStyle(color: themeColor)),
                               ),
                             SizedBox(height: 16),
-                            Divider(color: Colors.white24),
+                            Divider(color: Colors.grey[300]),
                             SizedBox(height: 16),
                             ElevatedButton.icon(
                               onPressed: _signInWithGoogle,
-                              icon: Icon(Icons.g_mobiledata, color: Colors.white),
-                              label: Text("Sign in with Google"),
+                              icon: Icon(Icons.g_mobiledata, color: Colors.black87),
+                              label: Text("Sign in with Google", style: TextStyle(color: Colors.black87)),
                               style: ElevatedButton.styleFrom(
                                 minimumSize: Size(double.infinity, 50),
-                                backgroundColor: Colors.white10,
-                                foregroundColor: Colors.white,
+                                backgroundColor: Colors.grey[100],
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
