@@ -7,22 +7,30 @@ import '../widgets/play_controls.dart';
 import '../widgets/like_button.dart';
 import '../widgets/podcast_details.dart';
 
-class PlayScreen extends StatelessWidget {
+class PlayScreen extends StatefulWidget {
   final Episode episode;
+  const PlayScreen({required this.episode});
 
-  PlayScreen({required this.episode});
+  @override
+  _PlayScreenState createState() => _PlayScreenState();
+}
+
+class _PlayScreenState extends State<PlayScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final likeService = Provider.of<LikeService>(context, listen: false);
+    likeService.checkIfLiked(widget.episode.id);
+  }
 
   @override
   Widget build(BuildContext context) {
     final audioPlayerService = Provider.of<AudioPlayerService>(context);
     final likeService = Provider.of<LikeService>(context);
 
-    // تحقق من حالة اللايك
-    likeService.checkIfLiked(episode.id);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(episode.title),
+        title: Text(widget.episode.title),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -30,25 +38,29 @@ class PlayScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             PodcastDetails(
-              title: episode.title,
-              description: episode.description,
-              imageUrl: episode.imageUrl,
+              title: widget.episode.title,
+              description: widget.episode.description,
+              imageUrl: widget.episode.imageUrl,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-            LikeButton(
-              isLiked: likeService.isLiked,
-              onPressed: () => likeService.toggleLike(episode.id),
+            Row(
+              children: [
+                LikeButton(
+                  isLiked: likeService.isLiked,
+                  onPressed: () => likeService.toggleLike(widget.episode.id),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.share),
+                  onPressed: () {
+                    // share logic here
+                  },
+                ),
+              ],
             ),
 
-            IconButton(
-              icon: Icon(Icons.share),
-              onPressed: () {
-                //
-              },
-            ),
-
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             PlayControls(
               isPlaying: audioPlayerService.isPlaying,
@@ -57,15 +69,13 @@ class PlayScreen extends StatelessWidget {
                 if (audioPlayerService.isPlaying) {
                   audioPlayerService.pauseAudio();
                 } else {
-                  audioPlayerService.playAudio(episode.audioUrl);
+                  audioPlayerService.playAudio(widget.episode.audioUrl);
                 }
               },
               onSkipForwardPressed: () {
-                //m3rfsh leh alfunction mb'tsh ready t2ribn esmaha atghayar  
                 audioPlayerService.skipForward();
               },
               onSkipBackwardPressed: () {
-                // 
                 audioPlayerService.skipBackward();
               },
             ),

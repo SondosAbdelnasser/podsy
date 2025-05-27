@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
-import 'providers/auth_provider.dart'; 
+import 'providers/auth_provider.dart' as local_auth; 
 import 'screens/login_screen.dart';   
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/create_podcast_screen.dart';
@@ -17,7 +17,9 @@ import 'screens/users_list_page.dart';
 import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
 import 'services/audio_player_service.dart';
+import 'services/like_service.dart';
 import 'widgets/auth_wrapper.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,9 +35,17 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => AudioPlayerService()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (context) => local_auth.AuthProvider()),
+        ChangeNotifierProvider(create: (context) => AudioPlayerService()),
+        ChangeNotifierProvider(
+          create: (context) {
+            final authProvider = Provider.of<local_auth.AuthProvider>(context, listen: false);
+            if (!authProvider.isLoggedIn) {
+              throw Exception("User not logged in");
+            }
+            return LikeService(userId: authProvider.currentUser!.id);
+          },
+        ),
       ],
       child: MyApp(),
     ),

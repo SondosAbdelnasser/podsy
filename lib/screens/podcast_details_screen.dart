@@ -3,6 +3,7 @@ import '../models/podcast.dart';
 import '../models/episode.dart' as episode_model;
 import '../services/podcast_service.dart';
 import 'package:just_audio/just_audio.dart';
+import '../screens/play_screen.dart';
 
 class PodcastDetailsScreen extends StatefulWidget {
   final Podcast podcast;
@@ -59,6 +60,14 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
 
   Future<void> _playEpisode(episode_model.Episode episode, int index) async {
     try {
+      // Navigate to PlayScreen first
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PlayScreen(episode: episode),
+        ),
+      );
+
       if (_currentEpisodeIndex == index && _isPlaying) {
         await _audioPlayer.pause();
         setState(() => _isPlaying = false);
