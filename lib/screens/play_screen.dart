@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/audio_pla';
+import '../services/audio_player_service.dart';
 import '../services/like_service.dart';
 import '../models/episode.dart';
 import '../widgets/play_controls.dart';
@@ -44,7 +44,7 @@ class PlayScreen extends StatelessWidget {
             IconButton(
               icon: Icon(Icons.share),
               onPressed: () {
-                // إضافة وظيفة المشاركة هنا
+                //
               },
             ),
 
@@ -61,7 +61,7 @@ class PlayScreen extends StatelessWidget {
                 }
               },
               onSkipForwardPressed: () {
-                //
+                //m3rfsh leh alfunction mb'tsh ready t2ribn esmaha atghayar  
                 audioPlayerService.skipForward();
               },
               onSkipBackwardPressed: () {
