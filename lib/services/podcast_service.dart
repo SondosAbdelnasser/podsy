@@ -7,6 +7,7 @@ import '../models/podcast_collection.dart';
 import '../models/episode.dart' as episode_model;
 import '../models/podcast.dart' as podcast_model;
 import '../utils/supabase_config.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PodcastService {
   final SupabaseClient client = SupabaseConfig.client;
@@ -320,6 +321,81 @@ class PodcastService {
     } catch (e) {
       print('Error in getAllPodcasts: $e'); // Add logging
       throw Exception('Failed to fetch podcasts: ${e.toString()}');
+    }
+  }
+
+  Future<List<podcast_model.Podcast>> getFollowedUsersEpisodes() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final currentUser = FirebaseAuth.instance.currentUser;
+      
+      if (currentUser == null) {
+        print('Error: User not authenticated with Firebase');
+        throw Exception('User not authenticated');
+      }
+
+      print('Fetching followed users for user: ${currentUser.uid}');
+
+      // First get the list of followed users
+      final followingResponse = await supabase
+          .from('follows')
+          .select('followed_id')
+          .eq('follower_id', currentUser.uid);
+
+      print('Following response: $followingResponse');
+
+      if (followingResponse.isEmpty) {
+        print('No followed users found');
+        return [];
+      }
+
+      final followingIds = followingResponse.map((f) => f['followed_id'] as String).toList();
+      print('Following IDs: $followingIds');
+
+      // Then get all podcasts from followed users
+      final podcastsResponse = await supabase
+          .from('podcast_collections')
+          .select('''
+            *,
+            episodes(*)
+          ''')
+          .filter('user_id', 'in', followingIds)
+          .order('created_at', ascending: false);
+
+      print('Podcasts response: $podcastsResponse');
+
+      return (podcastsResponse as List).map((doc) {
+        final episodes = (doc['episodes'] as List? ?? [])
+            .map((episode) => podcast_model.Episode(
+                  id: episode['id'] as String? ?? '',
+                  title: episode['title'] as String? ?? '',
+                  description: episode['description'] as String? ?? '',
+                  audioUrl: episode['audio_url'] as String? ?? '',
+                  publishDate: episode['published_at'] != null 
+                      ? DateTime.parse(episode['published_at'] as String)
+                      : DateTime.now(),
+                  duration: (episode['duration'] as int? ?? 0) * 1000,
+                  imageUrl: '', // No image URL in episodes table
+                ))
+            .toList();
+
+        return podcast_model.Podcast(
+          id: doc['id'] as String? ?? '',
+          title: doc['title'] as String? ?? '',
+          author: doc['user_id'] as String? ?? '', // We'll need to fetch user details separately
+          description: doc['description'] as String? ?? '',
+          imageUrl: doc['image_url'] as String? ?? '',
+          feedUrl: '', // Not needed for this use case
+          episodes: episodes,
+          category: doc['category'] as String? ?? 'Uncategorized',
+          rating: 0.0, // Default rating
+          episodeCount: episodes.length,
+        );
+      }).toList();
+    } catch (e, stackTrace) {
+      print('Error getting followed users episodes: $e');
+      print('Stack trace: $stackTrace');
+      throw Exception('Failed to load followed users episodes: $e');
     }
   }
 }

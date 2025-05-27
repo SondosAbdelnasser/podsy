@@ -274,7 +274,7 @@ class PodcastCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.white,
+      color: Color(0xFFF3E5F5), // Light purple color
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -300,7 +300,7 @@ class PodcastCard extends StatelessWidget {
                     child: Text(
                       podcast.title,
                       style: TextStyle(
-                        color: Colors.black,
+                        color: Colors.black87,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -308,7 +308,7 @@ class PodcastCard extends StatelessWidget {
                   ),
                   Icon(
                     Icons.chevron_right,
-                    color: Colors.grey[400],
+                    color: Colors.black54,
                   ),
                 ],
               ),
@@ -319,7 +319,7 @@ class PodcastCard extends StatelessWidget {
                   child: Text(
                     podcast.description!,
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: Colors.black87,
                       fontSize: 14,
                     ),
                     maxLines: 2,
@@ -331,7 +331,7 @@ class PodcastCard extends StatelessWidget {
                 child: Text(
                   'Created ${_formatDate(podcast.createdAt)}',
                   style: TextStyle(
-                    color: Colors.grey[500],
+                    color: Colors.black54,
                     fontSize: 12,
                   ),
                 ),

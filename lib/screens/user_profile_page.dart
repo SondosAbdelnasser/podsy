@@ -4,6 +4,8 @@ import '../models/user.dart';
 import '../models/podcast_collection.dart';
 import '../models/episode.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/podcast.dart' as podcast_model;
+import '../screens/podcast_details_screen.dart';
 
 class UserProfilePage extends StatefulWidget {
   final String userId;
@@ -183,8 +185,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(_user!.name),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black),
+        title: Text(
+          _user!.name,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -200,7 +213,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     children: [
                       CircleAvatar(
                         radius: 40,
-                        child: Text(_user!.name[0].toUpperCase()),
+                        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                        child: Text(
+                          _user!.name[0].toUpperCase(),
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 32,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -209,12 +230,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           children: [
                             Text(
                               _user!.name,
-                              style: Theme.of(context).textTheme.headlineSmall,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
                             ),
                             if (_user!.username != null)
                               Text(
                                 '@${_user!.username}',
-                                style: Theme.of(context).textTheme.bodyLarge,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
+                                ),
                               ),
                           ],
                         ),
@@ -231,9 +259,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           children: [
                             Text(
                               _followersCount.toString(),
-                              style: Theme.of(context).textTheme.titleLarge,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
                             ),
-                            const Text('Followers'),
+                            Text(
+                              'Followers',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -243,9 +280,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           children: [
                             Text(
                               _followingCount.toString(),
-                              style: Theme.of(context).textTheme.titleLarge,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
                             ),
-                            const Text('Following'),
+                            Text(
+                              'Following',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -256,7 +302,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _toggleFollow,
-                      child: Text(_isFollowing ? 'Unfollow' : 'Follow'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        _isFollowing ? 'Unfollow' : 'Follow',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -271,58 +330,100 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 children: [
                   Text(
                     'Collections',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _collections.length,
-                    itemBuilder: (context, index) {
-                      final collection = _collections[index];
-                      final episodes = _episodesByCollection[collection.id] ?? [];
-                      return Card(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ListTile(
-                              title: Text(collection.title),
-                              subtitle: Text(collection.description ?? ''),
-                              onTap: () {
-                                // TODO: Navigate to collection page
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Collection page coming soon'),
+                  if (_collections.isEmpty)
+                    Center(
+                      child: Text(
+                        'No collections yet',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 16,
+                        ),
+                      ),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _collections.length,
+                      itemBuilder: (context, index) {
+                        final collection = _collections[index];
+                        final episodes = _episodesByCollection[collection.id] ?? [];
+                        return Card(
+                          elevation: 2,
+                          margin: EdgeInsets.only(bottom: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ListTile(
+                                title: Text(
+                                  collection.title,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
                                   ),
-                                );
-                              },
-                            ),
-                            if (episodes.isNotEmpty)
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: episodes.length,
-                                itemBuilder: (context, episodeIndex) {
-                                  final episode = episodes[episodeIndex];
-                                  return ListTile(
-                                    title: Text(episode.title),
-                                    subtitle: Text(episode.description ?? ''),
-                                    onTap: () {
-                                      // TODO: Navigate to episode page
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Episode page coming soon'),
-                                        ),
-                                      );
-                                    },
+                                ),
+                                subtitle: Text(
+                                  collection.description ?? '',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                onTap: () {
+                                  final podcast = podcast_model.Podcast(
+                                    id: collection.id,
+                                    title: collection.title,
+                                    author: _user!.name,
+                                    description: collection.description ?? '',
+                                    imageUrl: '',
+                                    feedUrl: '',
+                                    episodes: episodes.map((e) => podcast_model.Episode(
+                                      id: e.id,
+                                      title: e.title,
+                                      description: e.description ?? '',
+                                      audioUrl: e.audioUrl,
+                                      publishDate: e.publishedAt ?? DateTime.now(),
+                                      duration: e.duration.inMilliseconds,
+                                      imageUrl: '',
+                                    )).toList(),
+                                    category: 'Personal',
+                                    rating: 0.0,
+                                    episodeCount: episodes.length,
+                                  );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PodcastDetailsScreen(podcast: podcast),
+                                    ),
                                   );
                                 },
                               ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                              if (episodes.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: Text(
+                                    '${episodes.length} ${episodes.length == 1 ? 'episode' : 'episodes'}',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                 ],
               ),
             ),

@@ -79,15 +79,6 @@ class _HomeScreenState extends State<Home> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.people, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const UsersListPage()),
-              );
-            },
-          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
@@ -273,6 +264,79 @@ class _HomeScreenState extends State<Home> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Followed Users' Episodes Section
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text(
+                                'From People You Follow',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            FutureBuilder<List<Podcast>>(
+                              future: _podcastService.getFollowedUsersEpisodes(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return Center(child: CircularProgressIndicator());
+                                }
+                                
+                                if (snapshot.hasError) {
+                                  return Center(
+                                    child: Text(
+                                      'Error loading followed episodes',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  );
+                                }
+
+                                final followedEpisodes = snapshot.data ?? [];
+                                
+                                if (followedEpisodes.isEmpty) {
+                                  return Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 16),
+                                    child: Text(
+                                      'Follow some users to see their episodes here!',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                return Container(
+                                  height: 280,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    padding: EdgeInsets.symmetric(horizontal: 16),
+                                    itemCount: followedEpisodes.length,
+                                    itemBuilder: (context, index) {
+                                      final podcast = followedEpisodes[index];
+                                      return Container(
+                                        width: 200,
+                                        margin: EdgeInsets.only(right: 16),
+                                        child: widgets.PodcastCard(
+                                          podcast: podcast,
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => PodcastDetailsScreen(podcast: podcast),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            SizedBox(height: 24),
+                            // All Podcasts Section
                             Padding(
                               padding: EdgeInsets.all(16),
                               child: Text(

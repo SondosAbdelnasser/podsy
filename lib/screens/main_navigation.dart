@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'podcast_home.dart';
 import 'search_screen.dart';
 import 'likes_screen.dart';
+import 'users_list_page.dart';
 
 class MainNavigation extends StatefulWidget {
   @override
@@ -15,6 +16,7 @@ class _MainNavigationState extends State<MainNavigation> {
     Home(),
     SearchScreen(),
     LikesScreen(),
+    UsersListPage(),
   ];
 
   @override
@@ -58,6 +60,11 @@ class _MainNavigationState extends State<MainNavigation> {
               icon: Icon(Icons.favorite_outline),
               activeIcon: Icon(Icons.favorite),
               label: 'Likes',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.people_outline),
+              activeIcon: Icon(Icons.people),
+              label: 'Users',
             ),
           ],
         ),
