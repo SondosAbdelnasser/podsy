@@ -15,6 +15,7 @@ import 'screens/profile_screen.dart';
 import 'screens/main_navigation.dart';
 import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
+import 'services/audio_player_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,9 +29,13 @@ void main() async {
   await SupabaseConfig.initialize();
   
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthProvider(),
-      child: MyApp(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AudioPlayerService()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ],
+          child: MyApp(),
     ),
   );
 }
