@@ -104,7 +104,7 @@ class PodcastService {
         estimatedDuration = Duration.zero;
       }
 
-      final episode = Episode(
+      final episode = episode_model.Episode(
         id: '',
         collectionId: collectionId,
         title: title,
