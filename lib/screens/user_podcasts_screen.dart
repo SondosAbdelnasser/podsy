@@ -10,11 +10,11 @@ class UserPodcastsScreen extends StatefulWidget {
   const UserPodcastsScreen({super.key});
 
   @override
-  _UserPodcastsScreenState createState() => _UserPodcastsScreenState();
+  State<UserPodcastsScreen> createState() => _UserPodcastsScreenState();
 }
 
 class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
-  final PodcastService _podcastService = Provider.of<PodcastService>(context);
+  late final PodcastService _podcastService;
   bool _isLoading = true;
   List<PodcastCollection> _podcasts = [];
   String? _error;
@@ -22,6 +22,7 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
   @override
   void initState() {
     super.initState();
+    _podcastService = Provider.of<PodcastService>(context, listen: false);
     _loadPodcasts();
   }
 
@@ -56,13 +57,13 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('My Podcasts'),
+        title: const Text('My Podcasts'),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
             onPressed: () async {
               await Navigator.pushNamed(context, '/createPodcast');
               _loadPodcasts(); // Refresh the list after returning
@@ -74,25 +75,25 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
       body: RefreshIndicator(
         onRefresh: _loadPodcasts,
         child: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator())
             : _error != null
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           'Error loading podcasts',
                           style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
                           _error!,
-                          style: TextStyle(color: Colors.red, fontSize: 14),
+                          style: const TextStyle(color: Colors.red, fontSize: 14),
                         ),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: _loadPodcasts,
-                          child: Text('Retry'),
+                          child: const Text('Retry'),
                         ),
                       ],
                     ),
@@ -102,13 +103,13 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.mic_none,
                               size: 64,
                               color: Colors.white54,
                             ),
-                            SizedBox(height: 16),
-                            Text(
+                            const SizedBox(height: 16),
+                            const Text(
                               'No podcasts yet',
                               style: TextStyle(
                                 color: Colors.white,
@@ -116,25 +117,25 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            SizedBox(height: 8),
-                            Text(
+                            const SizedBox(height: 8),
+                            const Text(
                               'Create your first podcast!',
                               style: TextStyle(
                                 color: Colors.white54,
                                 fontSize: 16,
                               ),
                             ),
-                            SizedBox(height: 24),
+                            const SizedBox(height: 24),
                             ElevatedButton.icon(
                               onPressed: () async {
                                 await Navigator.pushNamed(
                                     context, '/createPodcast');
                                 _loadPodcasts();
                               },
-                              icon: Icon(Icons.add),
-                              label: Text('Create Podcast'),
+                              icon: const Icon(Icons.add),
+                              label: const Text('Create Podcast'),
                               style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                     horizontal: 24, vertical: 12),
                               ),
                             ),
@@ -142,7 +143,7 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
                         ),
                       )
                     : ListView.builder(
-                        padding: EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
                         itemCount: _podcasts.length,
                         itemBuilder: (context, index) {
                           final podcast = _podcasts[index];
@@ -190,7 +191,7 @@ class PodcastCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       color: Colors.white10,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -199,7 +200,7 @@ class PodcastCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -210,18 +211,18 @@ class PodcastCard extends StatelessWidget {
                     color: Theme.of(context).primaryColor,
                     size: 24,
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       podcast.title,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                  Icon(
+                  const Icon(
                     Icons.chevron_right,
                     color: Colors.white54,
                   ),
@@ -229,10 +230,10 @@ class PodcastCard extends StatelessWidget {
               ),
               if (podcast.description != null && podcast.description!.isNotEmpty)
                 Padding(
-                  padding: EdgeInsets.only(top: 8, left: 36),
+                  padding: const EdgeInsets.only(top: 8, left: 36),
                   child: Text(
                     podcast.description!,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
                     ),
@@ -241,10 +242,10 @@ class PodcastCard extends StatelessWidget {
                   ),
                 ),
               Padding(
-                padding: EdgeInsets.only(top: 8, left: 36),
+                padding: const EdgeInsets.only(top: 8, left: 36),
                 child: Text(
                   'Created ${_formatDate(podcast.createdAt)}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white38,
                     fontSize: 12,
                   ),
@@ -258,6 +259,24 @@ class PodcastCard extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return 'today';
+    } else if (difference.inDays == 1) {
+      return 'yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inDays < 30) {
+      final weeks = (difference.inDays / 7).floor();
+      return '${weeks} ${weeks == 1 ? 'week' : 'weeks'} ago';
+    } else if (difference.inDays < 365) {
+      final months = (difference.inDays / 30).floor();
+      return '${months} ${months == 1 ? 'month' : 'months'} ago';
+    } else {
+      final years = (difference.inDays / 365).floor();
+      return '${years} ${years == 1 ? 'year' : 'years'} ago';
+    }
   }
 } 

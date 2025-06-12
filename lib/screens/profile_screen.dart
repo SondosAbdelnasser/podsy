@@ -1,31 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/auth_provider.dart';
 import '../services/podcast_service.dart';
+import '../services/embedding_service.dart';
 import '../models/podcast_collection.dart';
 import 'podcast_details_screen.dart';
 import '../models/podcast.dart';
+import '../config/api_keys.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  _ProfileScreenState createState() => _ProfileScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final PodcastService _podcastService = PodcastService();
+  late final PodcastService _podcastService;
   bool _isLoading = true;
   List<PodcastCollection> _podcasts = [];
   String? _error;
+  bool _mounted = true;
 
   @override
   void initState() {
     super.initState();
+    final embeddingService = EmbeddingService(
+      apiKey: ApiKeys.huggingFaceApiKey,
+      provider: EmbeddingProvider.huggingFace,
+    );
+    _podcastService = PodcastService(
+      client: Supabase.instance.client,
+      embeddingService: embeddingService,
+    );
     _loadPodcasts();
   }
 
+  @override
+  void dispose() {
+    _mounted = false;
+    super.dispose();
+  }
+
   Future<void> _loadPodcasts() async {
+    if (!_mounted) return;
     setState(() {
       _isLoading = true;
       _error = null;
@@ -40,11 +59,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       final podcasts = await _podcastService.getUserCollections(currentUser.id);
+      if (!_mounted) return;
       setState(() {
         _podcasts = podcasts;
         _isLoading = false;
       });
     } catch (e) {
+      if (!_mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -68,20 +89,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
               expandedHeight: 200,
               pinned: true,
               backgroundColor: Colors.white,
-              iconTheme: IconThemeData(color: Colors.black),
+              iconTheme: const IconThemeData(color: Colors.black),
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(
                   currentUser?.name ?? 'Profile',
-                  style: TextStyle(color: Colors.black),
+                  style: const TextStyle(color: Colors.black),
                 ),
                 background: Container(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  color: Theme.of(context).primaryColor.withAlpha(26), // 0.1 * 255 ≈ 26
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       CircleAvatar(
                         radius: 50,
-                        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                        backgroundColor: Theme.of(context).primaryColor.withAlpha(51), // 0.2 * 255 ≈ 51
                         child: Text(
                           (currentUser?.name ?? 'U')[0].toUpperCase(),
                           style: TextStyle(
@@ -91,10 +112,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
                         currentUser?.email ?? '',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.black87,
                           fontSize: 16,
                         ),
@@ -105,10 +126,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               actions: [
                 IconButton(
-                  icon: Icon(Icons.logout),
+                  icon: const Icon(Icons.logout),
                   color: Colors.black87,
                   onPressed: () async {
                     await authProvider.signOut();
+                    if (!_mounted) return;
                     Navigator.pushReplacementNamed(context, '/login');
                   },
                 ),
@@ -118,11 +140,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // My Podcasts Section
             SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'My Podcasts',
                       style: TextStyle(
                         color: Colors.black,
@@ -134,6 +156,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icon(Icons.add, color: Theme.of(context).primaryColor),
                       onPressed: () async {
                         await Navigator.pushNamed(context, '/createPodcast');
+                        if (!_mounted) return;
                         _loadPodcasts();
                       },
                     ),
@@ -144,7 +167,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // Podcasts List
             _isLoading
-                ? SliverFillRemaining(
+                ? const SliverFillRemaining(
                     child: Center(child: CircularProgressIndicator()),
                   )
                 : _error != null
@@ -153,24 +176,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
+                              const Text(
                                 'Error loading podcasts',
                                 style: TextStyle(
                                     color: Colors.black87, fontSize: 16),
                               ),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Text(
                                 _error!,
                                 style:
-                                    TextStyle(color: Colors.red, fontSize: 14),
+                                    const TextStyle(color: Colors.red, fontSize: 14),
                               ),
-                              SizedBox(height: 16),
+                              const SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: _loadPodcasts,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Theme.of(context).primaryColor,
                                 ),
-                                child: Text('Retry'),
+                                child: const Text('Retry'),
                               ),
                             ],
                           ),
@@ -187,8 +210,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     size: 64,
                                     color: Colors.grey[400],
                                   ),
-                                  SizedBox(height: 16),
-                                  Text(
+                                  const SizedBox(height: 16),
+                                  const Text(
                                     'No podcasts yet',
                                     style: TextStyle(
                                       color: Colors.black,
@@ -196,7 +219,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
-                                  SizedBox(height: 8),
+                                  const SizedBox(height: 8),
                                   Text(
                                     'Create your first podcast!',
                                     style: TextStyle(
@@ -204,18 +227,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       fontSize: 16,
                                     ),
                                   ),
-                                  SizedBox(height: 24),
+                                  const SizedBox(height: 24),
                                   ElevatedButton.icon(
                                     onPressed: () async {
                                       await Navigator.pushNamed(
                                           context, '/createPodcast');
+                                      if (!_mounted) return;
                                       _loadPodcasts();
                                     },
-                                    icon: Icon(Icons.add),
-                                    label: Text('Create Podcast'),
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Create Podcast'),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Theme.of(context).primaryColor,
-                                      padding: EdgeInsets.symmetric(
+                                      padding: const EdgeInsets.symmetric(
                                           horizontal: 24, vertical: 12),
                                     ),
                                   ),
@@ -253,8 +277,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 );
                               },
                               childCount: _podcasts.length,
-              ),
-            ),
+                            ),
+                          ),
           ],
         ),
       ),

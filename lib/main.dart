@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:podsy/screens/onboarding_screen.dart';
-import 'package:podsy/screens/upload_podcast.dart';
 import 'package:podsy/widgets/auth_form.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'screens/splash_screen.dart';
 import 'providers/auth_provider.dart' as local_auth; 
 import 'screens/login_screen.dart';   
 import 'screens/admin_dashboard_screen.dart';
-import 'screens/create_podcast_screen.dart';
+import 'screens/upload_podcast_screen.dart';
 import 'screens/user_podcasts_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/main_navigation.dart';
-import 'screens/users_list_page.dart';
 import 'screens/play_screen.dart';
 import 'screens/transcription_screen.dart';
-import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
 import 'services/audio_player_service.dart';
 import 'services/like_service.dart';
@@ -80,7 +76,7 @@ void main() async {
           ),
         ),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -110,15 +106,15 @@ class _MyAppState extends State<MyApp> {
       title: 'Podsy',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: AuthForm(),
+      home: const AuthForm(),
       routes: {
-        '/onboarding': (context) => OnboardingScreen(),
-        '/home': (context) => AuthWrapper(child: MainNavigation()),
-        '/login': (context) => LoginScreen(),
-        '/adminDashboard': (context) => AuthWrapper(child: AdminDashboardScreen()),
-        '/createPodcast': (context) => AuthWrapper(child: CreatePodcastScreen()),
-        '/myPodcasts': (context) => AuthWrapper(child: UserPodcastsScreen()),
-        '/profile': (context) => AuthWrapper(child: ProfileScreen()),
+        '/onboarding': (context) => const OnboardingScreen(),
+        '/home': (context) => AuthWrapper(child: const MainNavigation()),
+        '/login': (context) => const LoginScreen(),
+        '/adminDashboard': (context) => AuthWrapper(child: const AdminDashboardScreen()),
+        '/createPodcast': (context) => AuthWrapper(child: const CreatePodcastScreen()),
+        '/myPodcasts': (context) => AuthWrapper(child: const UserPodcastsScreen()),
+        '/profile': (context) => AuthWrapper(child: const ProfileScreen()),
         '/episode': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           return AuthWrapper(

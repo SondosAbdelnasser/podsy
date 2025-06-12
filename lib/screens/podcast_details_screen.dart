@@ -6,6 +6,9 @@ import 'package:just_audio/just_audio.dart';
 import 'upload_podcast.dart';
 import '../screens/play_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/embedding_service.dart';
+import '../utils/supabase_config.dart';
 
 class PodcastDetailsScreen extends StatefulWidget {
   final Podcast podcast;
@@ -20,39 +23,51 @@ class PodcastDetailsScreen extends StatefulWidget {
 }
 
 class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
-  final PodcastService _podcastService = PodcastService(client: client, embeddingService: embeddingService);
+  late final PodcastService _podcastService;
   final AudioPlayer _audioPlayer = AudioPlayer();
   List<episode_model.Episode> _episodes = [];
   bool _isLoading = true;
   String? _error;
   int? _currentEpisodeIndex;
   bool _isPlaying = false;
+  bool _mounted = true;
 
   @override
   void initState() {
     super.initState();
+    _podcastService = PodcastService(
+      client: Supabase.instance.client,
+      embeddingService: EmbeddingService(
+        apiKey: SupabaseConfig.supabaseAnonKey,
+        provider: EmbeddingProvider.huggingFace,
+      ),
+    );
     _loadEpisodes();
   }
 
   @override
   void dispose() {
+    _mounted = false;
     _audioPlayer.dispose();
     super.dispose();
   }
 
   Future<void> _loadEpisodes() async {
+    if (!_mounted) return;
     try {
       setState(() {
         _isLoading = true;
         _error = null;
       });
 
-      final episodes = await _podcastService.getCollectionEpisodes(widget.podcast.id);
+      final episodes = await _podcastService.getEpisodesForCollection(widget.podcast.id);
+      if (!_mounted) return;
       setState(() {
         _episodes = episodes;
         _isLoading = false;
       });
     } catch (e) {
+      if (!_mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -61,15 +76,17 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
   }
 
   Future<void> _playEpisode(episode_model.Episode episode, int index) async {
+    if (!mounted) return;
     try {
       // Navigate to PlayScreen first
-      Navigator.push(
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => PlayScreen(episode: episode),
         ),
       );
 
+      if (!mounted) return;
       if (_currentEpisodeIndex == index && _isPlaying) {
         await _audioPlayer.pause();
         setState(() => _isPlaying = false);
@@ -82,6 +99,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
         setState(() => _isPlaying = true);
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error playing episode: ${e.toString()}'),
@@ -107,6 +125,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
       backgroundColor: Colors.white,
       floatingActionButton: _episodes.isNotEmpty ? FloatingActionButton(
         onPressed: () async {
+          if (!mounted) return;
           await Navigator.push(
             context,
             MaterialPageRoute(
@@ -119,7 +138,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
           _loadEpisodes();
         },
         backgroundColor: Theme.of(context).primaryColor,
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ) : null,
       body: CustomScrollView(
         slivers: [
@@ -128,7 +147,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
             expandedHeight: 200,
             pinned: true,
             backgroundColor: Colors.white,
-            iconTheme: IconThemeData(color: Colors.black),
+            iconTheme: const IconThemeData(color: Colors.black),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
@@ -150,7 +169,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withOpacity(0.7),
+                          Colors.black.withAlpha(179), // 0.7 * 255 ≈ 179
                         ],
                       ),
                     ),
@@ -163,19 +182,19 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
           // Podcast Info
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.podcast.title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     widget.podcast.author,
                     style: TextStyle(
@@ -183,11 +202,11 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                       color: Colors.grey[600],
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Icon(Icons.category, size: 16, color: Colors.grey[600]),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(
                         widget.podcast.category,
                         style: TextStyle(
@@ -195,9 +214,9 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                           fontSize: 14,
                         ),
                       ),
-                      SizedBox(width: 16),
-                      Icon(Icons.star, size: 16, color: Colors.amber),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.star, size: 16, color: Colors.amber),
+                      const SizedBox(width: 4),
                       Text(
                         widget.podcast.rating.toStringAsFixed(1),
                         style: TextStyle(
@@ -207,7 +226,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
                     widget.podcast.description,
                     style: TextStyle(
@@ -216,8 +235,8 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                       height: 1.5,
                     ),
                   ),
-                  SizedBox(height: 24),
-                  Text(
+                  const SizedBox(height: 24),
+                  const Text(
                     'Episodes',
                     style: TextStyle(
                       fontSize: 20,
@@ -232,7 +251,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
 
           // Episodes List
           _isLoading
-              ? SliverFillRemaining(
+              ? const SliverFillRemaining(
                   child: Center(child: CircularProgressIndicator()),
                 )
               : _error != null
@@ -241,77 +260,28 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
+                            const Text(
                               'Error loading episodes',
                               style: TextStyle(color: Colors.black87, fontSize: 16),
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(
                               _error!,
-                              style: TextStyle(color: Colors.red, fontSize: 14),
-                            ),
-                            SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: _loadEpisodes,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).primaryColor,
-                              ),
-                              child: Text('Retry'),
+                              style: const TextStyle(color: Colors.red),
                             ),
                           ],
                         ),
                       ),
                     )
                   : _episodes.isEmpty
-                      ? SliverFillRemaining(
+                      ? const SliverFillRemaining(
                           child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.mic_none,
-                                  size: 64,
-                                  color: Colors.grey[400],
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  'No episodes yet',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Be the first to upload an episode!',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                SizedBox(height: 24),
-                                ElevatedButton.icon(
-                                  onPressed: () async {
-                                    await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => UploadEpisodeScreen(
-                                          podcastId: widget.podcast.id,
-                                          podcastTitle: widget.podcast.title,
-                                        ),
-                                      ),
-                                    );
-                                    _loadEpisodes();
-                                  },
-                                  icon: Icon(Icons.add),
-                                  label: Text('Upload Episode'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Theme.of(context).primaryColor,
-                                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              'No episodes yet',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                         )
@@ -319,82 +289,44 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                           delegate: SliverChildBuilderDelegate(
                             (context, index) {
                               final episode = _episodes[index];
-                              final isCurrentEpisode = _currentEpisodeIndex == index;
                               return Card(
-                                margin: EdgeInsets.symmetric(
+                                margin: const EdgeInsets.symmetric(
                                   horizontal: 16,
                                   vertical: 8,
                                 ),
-                                color: Colors.white,
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(
-                                    color: isCurrentEpisode
-                                        ? Theme.of(context).primaryColor
-                                        : Colors.grey[200]!,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: InkWell(
-                                  onTap: () => _playEpisode(episode, index),
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              isCurrentEpisode && _isPlaying
-                                                  ? Icons.pause_circle_filled
-                                                  : Icons.play_circle_filled,
-                                              size: 32,
-                                              color: Theme.of(context).primaryColor,
-                                            ),
-                                            SizedBox(width: 12),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    episode.title,
-                                                    style: TextStyle(
-                                                      color: Colors.black,
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                    maxLines: 2,
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                  SizedBox(height: 4),
-                                                  Text(
-                                                    _formatDuration(episode.duration),
-                                                    style: TextStyle(
-                                                      color: Colors.grey[600],
-                                                      fontSize: 14,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        if (episode.description.isNotEmpty) ...[
-                                          SizedBox(height: 8),
-                                          Text(
-                                            episode.description,
-                                            style: TextStyle(
-                                              color: Colors.grey[600],
-                                              fontSize: 14,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ],
+                                child: ListTile(
+                                  title: Text(
+                                    episode.title,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
                                     ),
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      if (episode.description?.isNotEmpty ?? false)
+                                        Text(
+                                          episode.description!,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${_formatDuration(episode.duration)} • ${_formatDate(episode.publishedAt ?? episode.createdAt)}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  trailing: IconButton(
+                                    icon: Icon(
+                                      _currentEpisodeIndex == index && _isPlaying
+                                          ? Icons.pause
+                                          : Icons.play_arrow,
+                                    ),
+                                    onPressed: () => _playEpisode(episode, index),
                                   ),
                                 ),
                               );
@@ -405,5 +337,9 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
         ],
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }

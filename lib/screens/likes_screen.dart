@@ -3,13 +3,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../models/episode.dart';
-import '../widgets/episode_card.dart';
+import '../services/audio_player_service.dart';
 
 class LikesScreen extends StatefulWidget {
   const LikesScreen({super.key});
 
   @override
-  _LikesScreenState createState() => _LikesScreenState();
+  State<LikesScreen> createState() => _LikesScreenState();
 }
 
 class _LikesScreenState extends State<LikesScreen> {
@@ -17,6 +17,7 @@ class _LikesScreenState extends State<LikesScreen> {
   List<Episode> likedEpisodes = [];
   bool isLoading = true;
   bool _mounted = true;
+  final _audioPlayerService = AudioPlayerService();
 
   @override
   void initState() {
@@ -27,6 +28,7 @@ class _LikesScreenState extends State<LikesScreen> {
   @override
   void dispose() {
     _mounted = false;
+    _audioPlayerService.dispose();
     super.dispose();
   }
 
@@ -83,7 +85,7 @@ class _LikesScreenState extends State<LikesScreen> {
             id: episode['id'] as String? ?? '',
             collectionId: episode['collection_id'] as String? ?? '',
             title: episode['title'] as String? ?? '',
-            description: episode['description'] as String?,
+            description: episode['description'] as String? ?? '',
             audioUrl: episode['audio_url'] as String? ?? '',
             imageUrl: episode['image_url'] as String?,
             duration: Duration(seconds: durationInSeconds),
@@ -97,9 +99,32 @@ class _LikesScreenState extends State<LikesScreen> {
         isLoading = false;
       });
     } catch (e) {
-      print('Error loading liked episodes: $e');
+      debugPrint('Error loading liked episodes: $e');
       if (!_mounted) return;
       setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _playEpisode(Episode episode) async {
+    try {
+      await _audioPlayerService.playAudio(episode.audioUrl);
+      if (!mounted) return;
+      
+      // Show a snackbar to indicate playback started
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Playing: ${episode.title}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to play episode: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -110,7 +135,7 @@ class _LikesScreenState extends State<LikesScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text(
+        title: const Text(
           'Liked Episodes',
           style: TextStyle(
             color: Colors.black,
@@ -118,12 +143,12 @@ class _LikesScreenState extends State<LikesScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: RefreshIndicator(
         onRefresh: loadLikedEpisodes,
         child: isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator())
             : likedEpisodes.isEmpty
                 ? Center(
                     child: Column(
@@ -134,8 +159,8 @@ class _LikesScreenState extends State<LikesScreen> {
                           size: 64,
                           color: Colors.grey[400],
                         ),
-                        SizedBox(height: 16),
-                        Text(
+                        const SizedBox(height: 16),
+                        const Text(
                           'No liked episodes yet',
                           style: TextStyle(
                             color: Colors.black,
@@ -143,7 +168,7 @@ class _LikesScreenState extends State<LikesScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
                           'Like some episodes to see them here',
                           style: TextStyle(
@@ -155,18 +180,18 @@ class _LikesScreenState extends State<LikesScreen> {
                     ),
                   )
                 : ListView.builder(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     itemCount: likedEpisodes.length,
                     itemBuilder: (context, index) {
                       final episode = likedEpisodes[index];
                       return Card(
-                        margin: EdgeInsets.only(bottom: 12),
-                        color: Color(0xFFF3E5F5), // Light purple color
+                        margin: const EdgeInsets.only(bottom: 12),
+                        color: const Color(0xFFF3E5F5), // Light purple color
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: ListTile(
-                          contentPadding: EdgeInsets.all(12),
+                          contentPadding: const EdgeInsets.all(12),
                           leading: CircleAvatar(
                             radius: 24,
                             backgroundColor: Colors.white,
@@ -181,7 +206,7 @@ class _LikesScreenState extends State<LikesScreen> {
                           ),
                           title: Text(
                             episode.title,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                               color: Colors.black87,
@@ -190,20 +215,20 @@ class _LikesScreenState extends State<LikesScreen> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (episode.description.isNotEmpty)
+                              if (episode.description?.isNotEmpty ?? false)
                                 Text(
-                                  episode.description,
-                                  style: TextStyle(
+                                  episode.description!,
+                                  style: const TextStyle(
                                     color: Colors.black54,
                                     fontSize: 14,
                                   ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
                                 '${_formatDuration(episode.duration)} • ${_formatDate(episode.publishedAt ?? episode.createdAt)}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.black54,
                                   fontSize: 12,
                                 ),
@@ -211,11 +236,9 @@ class _LikesScreenState extends State<LikesScreen> {
                             ],
                           ),
                           trailing: IconButton(
-                            icon: Icon(Icons.play_circle_outline),
+                            icon: const Icon(Icons.play_circle_outline),
                             color: Theme.of(context).primaryColor,
-                            onPressed: () {
-                              // TODO: Implement episode playback
-                            },
+                            onPressed: () => _playEpisode(episode),
                           ),
                         ),
                       );

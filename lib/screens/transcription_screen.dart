@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/transcription_provider.dart';
 import '../models/episode.dart';
-import '../widgets/episode_card.dart';
 import '../services/podcast_service.dart';
 import '../services/embedding_service.dart';
 import '../config/api_keys.dart';
@@ -21,7 +20,7 @@ class TranscriptionScreen extends StatefulWidget {
   });
 
   @override
-  _TranscriptionScreenState createState() => _TranscriptionScreenState();
+  State<TranscriptionScreen> createState() => _TranscriptionScreenState();
 }
 
 class _TranscriptionScreenState extends State<TranscriptionScreen> {
@@ -30,6 +29,7 @@ class _TranscriptionScreenState extends State<TranscriptionScreen> {
   List<Episode> _similarEpisodes = [];
   bool _showTranscript = false;
   late final PodcastService _podcastService;
+  bool _mounted = true;
 
   @override
   void initState() {
@@ -46,6 +46,12 @@ class _TranscriptionScreenState extends State<TranscriptionScreen> {
     _loadSimilarEpisodes();
   }
 
+  @override
+  void dispose() {
+    _mounted = false;
+    super.dispose();
+  }
+
   Future<void> _loadSimilarEpisodes() async {
     if (_isLoading) return;
 
@@ -55,12 +61,14 @@ class _TranscriptionScreenState extends State<TranscriptionScreen> {
 
     try {
       final transcriptionProvider = Provider.of<TranscriptionProvider>(context, listen: false);
-      final similarEpisodes = await transcriptionProvider.findSimilarEpisodes(widget.episodeId);
+      await transcriptionProvider.transcribeAudio(widget.audioUrl);
       
+      if (!_mounted) return;
       setState(() {
-        _similarEpisodes = similarEpisodes;
+        _similarEpisodes = transcriptionProvider.similarEpisodes;
       });
     } catch (e) {
+      if (!_mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error finding similar episodes: ${e.toString()}'),
@@ -68,6 +76,7 @@ class _TranscriptionScreenState extends State<TranscriptionScreen> {
         ),
       );
     } finally {
+      if (!_mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -83,13 +92,15 @@ class _TranscriptionScreenState extends State<TranscriptionScreen> {
 
     try {
       final transcriptionProvider = Provider.of<TranscriptionProvider>(context, listen: false);
-      await transcriptionProvider.processAudio(widget.audioUrl, widget.episodeId);
+      await transcriptionProvider.transcribeAudio(widget.audioUrl);
       
+      if (!_mounted) return;
       setState(() {
-        _transcript = transcriptionProvider.currentTranscript;
+        _transcript = transcriptionProvider.transcript;
         _showTranscript = true;
       });
     } catch (e) {
+      if (!_mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error processing audio: ${e.toString()}'),
@@ -97,6 +108,7 @@ class _TranscriptionScreenState extends State<TranscriptionScreen> {
         ),
       );
     } finally {
+      if (!_mounted) return;
       setState(() {
         _isLoading = false;
       });

@@ -4,29 +4,47 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/auth_provider.dart';
 import '../services/podcast_service.dart';
+import '../services/embedding_service.dart';
 import '../models/podcast_collection.dart';
+import '../config/api_keys.dart';
 
 class CreatePodcastScreen extends StatefulWidget {
   const CreatePodcastScreen({super.key});
 
   @override
-  _CreatePodcastScreenState createState() => _CreatePodcastScreenState();
+  State<CreatePodcastScreen> createState() => _CreatePodcastScreenState();
 }
 
 class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final PodcastService _podcastService = PodcastService();
+  late final PodcastService _podcastService;
   bool _isLoading = false;
   File? _imageFile;
   String? _imageFileName;
   Uint8List? _imageBytes;
+  bool _mounted = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final embeddingService = EmbeddingService(
+      apiKey: ApiKeys.huggingFaceApiKey,
+      provider: EmbeddingProvider.huggingFace,
+    );
+    _podcastService = PodcastService(
+      client: Supabase.instance.client,
+      embeddingService: embeddingService,
+    );
+  }
 
   @override
   void dispose() {
+    _mounted = false;
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -40,6 +58,7 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
       );
 
       if (result != null) {
+        if (!_mounted) return;
         setState(() {
           if (kIsWeb) {
             _imageBytes = result.files.single.bytes;
@@ -51,6 +70,7 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
         });
       }
     } catch (e) {
+      if (!_mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error picking image: ${e.toString()}'),
@@ -90,8 +110,9 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
         imageFileName: _imageFileName,
       );
 
+      if (!_mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Podcast created successfully!'),
           backgroundColor: Colors.green,
         ),
@@ -109,6 +130,7 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
       // Navigate back
       Navigator.pop(context);
     } catch (e) {
+      if (!_mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error creating podcast: ${e.toString()}'),
@@ -116,6 +138,7 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
         ),
       );
     } finally {
+      if (!_mounted) return;
       setState(() => _isLoading = false);
     }
   }
@@ -124,17 +147,17 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Create Podcast',
           style: TextStyle(color: Colors.black),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
@@ -143,12 +166,12 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
               // Title Field
               TextFormField(
                 controller: _titleController,
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
                 decoration: InputDecoration(
                   labelText: 'Podcast Title',
-                  labelStyle: TextStyle(color: Colors.black87),
+                  labelStyle: const TextStyle(color: Colors.black87),
                   hintText: 'Enter your podcast title',
-                  hintStyle: TextStyle(color: Colors.grey),
+                  hintStyle: const TextStyle(color: Colors.grey),
                   filled: true,
                   fillColor: Colors.grey[100],
                   border: OutlineInputBorder(
@@ -171,17 +194,17 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
                   return null;
                 },
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               // Description Field
               TextFormField(
                 controller: _descriptionController,
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
                 decoration: InputDecoration(
                   labelText: 'Description',
-                  labelStyle: TextStyle(color: Colors.black87),
+                  labelStyle: const TextStyle(color: Colors.black87),
                   hintText: 'Enter your podcast description',
-                  hintStyle: TextStyle(color: Colors.grey),
+                  hintStyle: const TextStyle(color: Colors.grey),
                   filled: true,
                   fillColor: Colors.grey[100],
                   border: OutlineInputBorder(
@@ -205,10 +228,10 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
                   return null;
                 },
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               // Image Upload Section
-              Text(
+              const Text(
                 'Cover Image (Optional)',
                 style: TextStyle(
                   color: Colors.black87,
@@ -216,7 +239,7 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
@@ -252,45 +275,45 @@ class _CreatePodcastScreenState extends State<CreatePodcastScreen> {
                               size: 48,
                               color: Colors.grey[400],
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(
-                              'Add Podcast Cover Image',
+                              'Tap to add cover image',
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 16,
-                              ),
-                            ),
-                            Text(
-                              '(Optional)',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 14,
                               ),
                             ),
                           ],
                         ),
                 ),
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-              // Create Button
+              // Submit Button
               ElevatedButton(
                 onPressed: _isLoading ? null : _createPodcast,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).primaryColor,
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 child: _isLoading
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : Text(
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text(
                         'Create Podcast',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.white,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
               ),
