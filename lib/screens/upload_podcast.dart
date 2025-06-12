@@ -3,10 +3,14 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../providers/transcription_provider.dart';
 import '../services/podcast_service.dart';
 import '../services/embedding_service.dart';
 import '../utils/supabase_config.dart';
 import '../screens/transcription_screen.dart';
+import '../config/api_keys.dart';
 
 class UploadEpisodeScreen extends StatefulWidget {
   final String podcastId;
@@ -37,10 +41,13 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
   void initState() {
     super.initState();
     final embeddingService = EmbeddingService(
-      apiKey: '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',
+      apiKey: ApiKeys.huggingFaceApiKey,
       provider: EmbeddingProvider.huggingFace,
     );
-    _podcastService = PodcastService(embeddingService);
+    _podcastService = PodcastService(
+      client: Supabase.instance.client,
+      embeddingService: embeddingService,
+    );
   }
 
   @override

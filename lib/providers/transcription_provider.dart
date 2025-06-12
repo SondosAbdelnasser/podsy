@@ -5,9 +5,9 @@ import '../services/supabase_service.dart';
 import '../models/episode.dart';
 
 class TranscriptionProvider with ChangeNotifier {
-  final TranscriptionService _transcriptionService = TranscriptionService();
-  final EmbeddingService _embeddingService = EmbeddingService();
-  final SupabaseService _supabaseService = SupabaseService();
+  final TranscriptionService _transcriptionService = TranscriptionService(client: client, embeddingService: embeddingService);
+  final EmbeddingService _embeddingService = EmbeddingService(apiKey: apiKey, provider: provider);
+  final SupabaseService _supabaseService = SupabaseService(client: client);
 
   bool _isProcessing = false;
   String? _currentTranscript;

@@ -5,6 +5,7 @@ import '../services/podcast_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'upload_podcast.dart';
 import '../screens/play_screen.dart';
+import 'package:provider/provider.dart';
 
 class PodcastDetailsScreen extends StatefulWidget {
   final Podcast podcast;
@@ -19,7 +20,7 @@ class PodcastDetailsScreen extends StatefulWidget {
 }
 
 class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
-  final PodcastService _podcastService = PodcastService();
+  final PodcastService _podcastService = PodcastService(client: client, embeddingService: embeddingService);
   final AudioPlayer _audioPlayer = AudioPlayer();
   List<episode_model.Episode> _episodes = [];
   bool _isLoading = true;

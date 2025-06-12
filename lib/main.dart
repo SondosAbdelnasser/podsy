@@ -27,6 +27,8 @@ import 'services/supabase_service.dart';
 import 'providers/transcription_provider.dart';
 import 'widgets/auth_wrapper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'services/podcast_service.dart';
+import 'config/api_keys.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,15 +39,18 @@ void main() async {
   );
   
   // Initialize Supabase for database
-  await SupabaseConfig.initialize();
+  await Supabase.initialize(
+    url: 'YOUR_SUPABASE_URL',
+    anonKey: 'YOUR_SUPABASE_ANON_KEY',
+  );
   
   // Create services
   final transcriptionService = TranscriptionService('7a2e53c8702a4786a0b461a491c46d72');
   final embeddingService = EmbeddingService(
-    apiKey: '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',
+    apiKey: ApiKeys.huggingFaceApiKey,
     provider: EmbeddingProvider.huggingFace,
   );
-  final supabaseService = SupabaseService(SupabaseConfig.client);
+  final supabaseService = SupabaseService(Supabase.instance.client);
   
   runApp(
     MultiProvider(
@@ -66,6 +71,12 @@ void main() async {
             transcriptionService: transcriptionService,
             embeddingService: embeddingService,
             supabaseService: supabaseService,
+          ),
+        ),
+        Provider<PodcastService>(
+          create: (_) => PodcastService(
+            client: Supabase.instance.client,
+            embeddingService: embeddingService,
           ),
         ),
       ],

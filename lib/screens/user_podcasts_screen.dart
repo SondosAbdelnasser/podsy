@@ -14,7 +14,7 @@ class UserPodcastsScreen extends StatefulWidget {
 }
 
 class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
-  final PodcastService _podcastService = PodcastService();
+  final PodcastService _podcastService = Provider.of<PodcastService>(context);
   bool _isLoading = true;
   List<PodcastCollection> _podcasts = [];
   String? _error;

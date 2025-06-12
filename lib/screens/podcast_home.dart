@@ -17,7 +17,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<Home> {
-  final PodcastService _podcastService = PodcastService();
+  final PodcastService _podcastService = Provider.of<PodcastService>(context);
   List<Podcast> _podcasts = [];
   bool _isLoading = true;
   String? _error;

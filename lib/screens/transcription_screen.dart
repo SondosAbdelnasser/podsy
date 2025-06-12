@@ -6,6 +6,7 @@ import '../models/episode.dart';
 import '../widgets/episode_card.dart';
 import '../services/podcast_service.dart';
 import '../services/embedding_service.dart';
+import '../config/api_keys.dart';
 
 class TranscriptionScreen extends StatefulWidget {
   final String audioUrl;
@@ -34,7 +35,7 @@ class _TranscriptionScreenState extends State<TranscriptionScreen> {
   void initState() {
     super.initState();
     final embeddingService = EmbeddingService(
-      apiKey: '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',
+      apiKey: ApiKeys.huggingFaceApiKey,
       provider: EmbeddingProvider.huggingFace,
     );
     _podcastService = PodcastService(
