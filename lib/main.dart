@@ -7,6 +7,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'providers/auth_provider.dart' as local_auth; 
+import 'providers/theme_provider.dart';
+import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';   
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/create_podcast_screen.dart';
@@ -34,11 +36,11 @@ void main() async {
   // Initialize Supabase for database
   await SupabaseConfig.initialize();
   
-  runApp(
-    MultiProvider(
+  runApp(    MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => local_auth.AuthProvider()),
         ChangeNotifierProvider(create: (context) => AudioPlayerService()),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(
           create: (context) {
             final authProvider = Provider.of<local_auth.AuthProvider>(context, listen: false);
@@ -56,7 +58,6 @@ void main() async {
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
-  
   @override
   State<MyApp> createState() => _MyAppState();
 }
@@ -74,72 +75,31 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Podsy',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      home: AuthForm(),
-      routes: {
-        '/onboarding': (context) => OnboardingScreen(),
-        '/home': (context) => AuthWrapper(child: MainNavigation()),
-        '/login': (context) => LoginScreen(),
-        '/adminDashboard': (context) => AuthWrapper(child: AdminDashboardScreen()),
-        '/createPodcast': (context) => AuthWrapper(child: CreatePodcastScreen()),
-        '/myPodcasts': (context) => AuthWrapper(child: UserPodcastsScreen()),
-        '/profile': (context) => AuthWrapper(child: ProfileScreen()),
-        '/episode': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          return AuthWrapper(
-            child: PlayScreen(episode: args['episode']),
-          );
-        },
+    Widget build(BuildContext context) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'Podsy',
+          debugShowCheckedModeBanner: false,
+          theme: themeProvider.isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme,
+          home: AuthForm(),
+          routes: {
+            '/onboarding': (context) => OnboardingScreen(),
+            '/home': (context) => AuthWrapper(child: MainNavigation()),
+            '/login': (context) => LoginScreen(),
+            '/adminDashboard': (context) => AuthWrapper(child: AdminDashboardScreen()),
+            '/createPodcast': (context) => AuthWrapper(child: CreatePodcastScreen()),
+            '/myPodcasts': (context) => AuthWrapper(child: UserPodcastsScreen()),
+            '/profile': (context) => AuthWrapper(child: ProfileScreen()),
+            '/episode': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              return AuthWrapper(
+                child: PlayScreen(episode: args['episode']),
+              );
+            },
+          },
+        );
       },
     );
   }
 }
-
-// class HomeScreen extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Home'),
-//         backgroundColor: Colors.black,
-//         foregroundColor: Colors.white,
-//         elevation: 0,
-//       ),
-//       backgroundColor: Colors.black,
-//       body: Center(
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             ElevatedButton.icon(
-//               onPressed: () {
-//                 Navigator.pushNamed(context, '/myPodcasts');
-//               },
-//               icon: Icon(Icons.mic),
-//               label: Text('My Podcasts'),
-//               style: ElevatedButton.styleFrom(
-//                 padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-//                 textStyle: TextStyle(fontSize: 18),
-//               ),
-//             ),
-//             SizedBox(height: 16),
-//             ElevatedButton.icon(
-//               onPressed: () {
-//                 Navigator.pushNamed(context, '/createPodcast');
-//               },
-//               icon: Icon(Icons.add),
-//               label: Text('Create New Podcast'),
-//               style: ElevatedButton.styleFrom(
-//                 padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-//                 textStyle: TextStyle(fontSize: 18),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
