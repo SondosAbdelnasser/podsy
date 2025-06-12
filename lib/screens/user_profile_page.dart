@@ -10,7 +10,7 @@ import '../screens/podcast_details_screen.dart';
 class UserProfilePage extends StatefulWidget {
   final String userId;
 
-  const UserProfilePage({Key? key, required this.userId}) : super(key: key);
+  const UserProfilePage({super.key, required this.userId});
 
   @override
   State<UserProfilePage> createState() => _UserProfilePageState();
@@ -20,7 +20,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   final _supabase = Supabase.instance.client;
   UserModel? _user;
   List<PodcastCollection> _collections = [];
-  Map<String, List<Episode>> _episodesByCollection = {};
+  final Map<String, List<Episode>> _episodesByCollection = {};
   int _followersCount = 0;
   int _followingCount = 0;
   bool _isFollowing = false;

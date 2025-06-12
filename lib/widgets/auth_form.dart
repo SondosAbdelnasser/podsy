@@ -5,6 +5,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../providers/auth_provider.dart';
 
 class AuthForm extends StatefulWidget {
+  const AuthForm({super.key});
+
   @override
   _AuthFormState createState() => _AuthFormState();
 }
@@ -40,17 +42,11 @@ class _AuthFormState extends State<AuthForm> {
         await authProvider.signUp(email, password);
       }
 
-      if (authProvider.is_admin != null) {
-        Navigator.pushReplacementNamed(
-          context,
-          authProvider.is_admin ? '/admin' : '/home',
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Login failed or user role not found.")),
-        );
-      }
-    } catch (e) {
+      Navigator.pushReplacementNamed(
+        context,
+        authProvider.is_admin ? '/admin' : '/home',
+      );
+        } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.toString()}")),
       );
@@ -87,17 +83,11 @@ class _AuthFormState extends State<AuthForm> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.signInWithGoogle();
 
-      if (authProvider.is_admin != null) {
-        Navigator.pushReplacementNamed(
-          context,
-          authProvider.is_admin ? '/admin' : '/home',
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Login failed or user role not found.")),
-        );
-      }
-    } catch (e) {
+      Navigator.pushReplacementNamed(
+        context,
+        authProvider.is_admin ? '/admin' : '/home',
+      );
+        } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Google Sign-In failed: ${e.toString()}")),
       );
@@ -200,10 +190,6 @@ class _AuthFormState extends State<AuthForm> {
                             SizedBox(height: 24),
                             ElevatedButton(
                               onPressed: _submit,
-                              child: Text(
-                                _isLogin ? "Sign In" : "Sign Up",
-                                style: TextStyle(fontSize: 18),
-                              ),
                               style: ElevatedButton.styleFrom(
                                 minimumSize: Size(double.infinity, 50),
                                 backgroundColor: themeColor,
@@ -211,6 +197,10 @@ class _AuthFormState extends State<AuthForm> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
+                              ),
+                              child: Text(
+                                _isLogin ? "Sign In" : "Sign Up",
+                                style: TextStyle(fontSize: 18),
                               ),
                             ),
                             TextButton(

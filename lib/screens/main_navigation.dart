@@ -5,6 +5,8 @@ import 'likes_screen.dart';
 import 'users_list_page.dart';
 
 class MainNavigation extends StatefulWidget {
+  const MainNavigation({super.key});
+
   @override
   _MainNavigationState createState() => _MainNavigationState();
 }

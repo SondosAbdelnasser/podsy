@@ -19,11 +19,9 @@ class AppTheme {
         primary: primaryColor,
         secondary: primaryColor,
         surface: backgroundColor,
-        background: backgroundColor,
         onPrimary: textColor,
         onSecondary: textColor,
         onSurface: textColor,
-        onBackground: textColor,
       ),
       textTheme: const TextTheme(
         bodyLarge: TextStyle(color: textColor),

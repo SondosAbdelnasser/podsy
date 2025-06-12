@@ -7,6 +7,8 @@ import 'podcast_details_screen.dart';
 import '../models/podcast.dart';
 
 class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
@@ -165,10 +167,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: _loadPodcasts,
-                                child: Text('Retry'),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Theme.of(context).primaryColor,
                                 ),
+                                child: Text('Retry'),
                               ),
                             ],
                           ),
@@ -265,10 +267,10 @@ class PodcastCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const PodcastCard({
-    Key? key,
+    super.key,
     required this.podcast,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

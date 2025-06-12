@@ -6,6 +6,8 @@ import '../models/episode.dart';
 import '../widgets/episode_card.dart';
 
 class LikesScreen extends StatefulWidget {
+  const LikesScreen({super.key});
+
   @override
   _LikesScreenState createState() => _LikesScreenState();
 }
@@ -188,9 +190,9 @@ class _LikesScreenState extends State<LikesScreen> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (episode.description != null && episode.description!.isNotEmpty)
+                              if (episode.description.isNotEmpty)
                                 Text(
-                                  episode.description!,
+                                  episode.description,
                                   style: TextStyle(
                                     color: Colors.black54,
                                     fontSize: 14,

@@ -4,6 +4,8 @@ import '../models/user.dart';
 import '../widgets/user_list_item.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
+  const AdminDashboardScreen({super.key});
+
   @override
   _AdminDashboardScreenState createState() => _AdminDashboardScreenState();
 }

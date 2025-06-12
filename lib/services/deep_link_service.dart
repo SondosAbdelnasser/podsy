@@ -23,8 +23,6 @@ class DeepLinkService {
           .eq('id', episodeId)
           .single();
 
-      if (response == null) return null;
-
       // Parse duration string (format: "HH:MM:SS")
       int durationInSeconds = 0;
       if (response['duration'] != null) {

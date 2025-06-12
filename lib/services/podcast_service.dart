@@ -8,9 +8,16 @@ import '../models/episode.dart' as episode_model;
 import '../models/podcast.dart' as podcast_model;
 import '../utils/supabase_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'embedding_service.dart';
 
 class PodcastService {
-  final SupabaseClient client = SupabaseConfig.client;
+  final SupabaseClient client;
+  final EmbeddingService _embeddingService;
+
+  PodcastService({
+    required this.client,
+    required EmbeddingService embeddingService,
+  }) : _embeddingService = embeddingService;
 
   // Collection methods
   Future<PodcastCollection?> getUserCollection(String userId) async {
@@ -22,7 +29,7 @@ class PodcastService {
           .maybeSingle();
       
       if (response != null) {
-        return PodcastCollection.fromMap(response as Map<String, dynamic>, response['id'] as String);
+        return PodcastCollection.fromMap(response, response['id'] as String);
       }
       return null;
     } catch (e) {
@@ -80,7 +87,7 @@ class PodcastService {
           .select()
           .single();
       
-      final createdCollection = PodcastCollection.fromMap(response as Map<String, dynamic>, response['id'] as String);
+      final createdCollection = PodcastCollection.fromMap(response, response['id'] as String);
 
       // If an image was provided, upload it and update the collection
       if (imageFile != null || imageBytes != null) {
@@ -178,6 +185,10 @@ class PodcastService {
         estimatedDuration = Duration.zero;
       }
 
+      // Generate embedding for the episode
+      final textForEmbedding = _embeddingService.prepareTextForEmbedding(title, description);
+      final embedding = await _embeddingService.getEmbedding(textForEmbedding);
+
       final episode = episode_model.Episode(
         id: '',
         collectionId: collectionId,
@@ -188,6 +199,7 @@ class PodcastService {
         publishedAt: DateTime.now(),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        embedding: embedding,
       );
 
       try {
@@ -201,58 +213,32 @@ class PodcastService {
               .from('podcast-files')
               .remove([filePath]);
         } catch (cleanupError) {
-          print('Failed to cleanup storage after db error: ${cleanupError.toString()}');
+          print('Failed to clean up file after database error: $cleanupError');
         }
-        throw Exception('Failed to create episode record: ${dbError.toString()}');
+        throw Exception('Failed to create episode: ${dbError.toString()}');
       }
-
     } catch (e) {
-      throw Exception('Upload process failed: ${e.toString()}');
+      throw Exception('Failed to upload episode: ${e.toString()}');
     }
   }
 
-  Future<List<episode_model.Episode>> getCollectionEpisodes(String collectionId) async {
+  Future<List<episode_model.Episode>> getEpisodesForCollection(String collectionId) async {
     try {
       final response = await client
           .from('episodes')
           .select()
           .eq('collection_id', collectionId)
-          .order('published_at', ascending: false);
+          .order('created_at', ascending: false);
       
-      return (response as List).map((doc) {
-        // Parse duration string (format: "HH:MM:SS")
-        int durationInSeconds = 0;
-        if (doc['duration'] != null) {
-          final durationStr = doc['duration'] as String;
-          final parts = durationStr.split(':');
-          if (parts.length == 3) {
-            durationInSeconds = int.parse(parts[0]) * 3600 + // hours
-                              int.parse(parts[1]) * 60 +    // minutes
-                              int.parse(parts[2]);          // seconds
-          }
-        }
-
-        return episode_model.Episode(
-          id: doc['id'] as String? ?? '',
-          collectionId: doc['collection_id'] as String? ?? '',
-          title: doc['title'] as String? ?? '',
-          description: doc['description'] as String?,
-          audioUrl: doc['audio_url'] as String? ?? '',
-          duration: Duration(seconds: durationInSeconds),
-          publishedAt: doc['published_at'] != null 
-              ? DateTime.parse(doc['published_at'] as String)
-              : null,
-          createdAt: DateTime.parse(doc['created_at'] as String),
-          updatedAt: DateTime.parse(doc['updated_at'] as String),
-        );
-      }).toList();
+      return (response as List)
+          .map((doc) => episode_model.Episode.fromMap(doc as Map<String, dynamic>, doc['id'] as String))
+          .toList();
     } catch (e) {
-      print('Error in getCollectionEpisodes: $e'); // Add logging
       throw Exception('Failed to fetch episodes: ${e.toString()}');
     }
   }
 
-  Future<episode_model.Episode?> getEpisodeById(String episodeId) async {
+  Future<episode_model.Episode?> getEpisode(String episodeId) async {
     try {
       final response = await client
           .from('episodes')
@@ -261,7 +247,7 @@ class PodcastService {
           .maybeSingle();
       
       if (response != null) {
-        return episode_model.Episode.fromMap(response as Map<String, dynamic>, response['id'] as String);
+        return episode_model.Episode.fromMap(response, response['id'] as String);
       }
       return null;
     } catch (e) {
@@ -271,21 +257,19 @@ class PodcastService {
 
   Future<void> deleteEpisode(String episodeId) async {
     try {
-      // Get episode details first to delete the audio file
-      final episode = await getEpisodeById(episodeId);
-      if (episode != null) {
-        // Extract file path from URL and delete from storage
-        final uri = Uri.parse(episode.audioUrl);
-        final pathSegments = uri.pathSegments;
-        if (pathSegments.length >= 3) {
-          final filePath = pathSegments.sublist(2).join('/'); // Skip bucket and 'object' segments
-          await client.storage
-              .from('podcast-files')
-              .remove([filePath]);
-        }
+      // First get the episode to get its audio URL
+      final episode = await getEpisode(episodeId);
+      if (episode == null) {
+        throw Exception('Episode not found');
       }
 
-      // Delete episode record
+      // Delete the audio file from storage
+      final audioPath = episode.audioUrl.split('/').last;
+      await client.storage
+          .from('podcast-files')
+          .remove(['podcasts/${episode.collectionId}/$audioPath']);
+
+      // Delete the episode from the database
       await client
           .from('episodes')
           .delete()
@@ -482,6 +466,30 @@ class PodcastService {
       return (hours * 3600 + minutes * 60 + seconds); // Convert to milliseconds
     }
     return 0;
+  }
+
+  Future<String> getCollectionOwnerName(String collectionId) async {
+    try {
+      final response = await client
+          .from('podcast_collections')
+          .select('user_id')
+          .eq('id', collectionId)
+          .single();
+      
+      final userId = response['user_id'] as String? ?? '';
+      
+      // Get user profile
+      final userResponse = await client
+          .from('profiles')
+          .select('username')
+          .eq('id', userId)
+          .single();
+      
+      return userResponse['username'] as String? ?? 'Unknown';
+    } catch (e) {
+      print('Error getting collection owner name: $e');
+      return 'Unknown';
+    }
   }
 }
 

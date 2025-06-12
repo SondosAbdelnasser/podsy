@@ -7,10 +7,11 @@ import '../models/episode.dart';
 import '../widgets/play_controls.dart';
 import '../widgets/like_button.dart';
 import '../widgets/podcast_details.dart';
+import 'transcription_screen.dart';
 
 class PlayScreen extends StatefulWidget {
   final Episode episode;
-  const PlayScreen({required this.episode});
+  const PlayScreen({super.key, required this.episode});
 
   @override
   _PlayScreenState createState() => _PlayScreenState();
@@ -18,6 +19,7 @@ class PlayScreen extends StatefulWidget {
 
 class _PlayScreenState extends State<PlayScreen> {
   final ShareService _shareService = ShareService();
+  String? _transcript;
 
   @override
   void initState() {
@@ -44,6 +46,32 @@ class _PlayScreenState extends State<PlayScreen> {
     }
   }
 
+  Future<void> _transcribeEpisode() async {
+    try {
+      final transcript = await Navigator.push<String>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TranscriptionScreen(
+            audioUrl: widget.episode.audioUrl,
+            episodeId: widget.episode.id,
+            initialTranscript: _transcript,
+          ),
+        ),
+      );
+
+      if (transcript != null) {
+        setState(() => _transcript = transcript);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final audioPlayerService = Provider.of<AudioPlayerService>(context);
@@ -52,8 +80,15 @@ class _PlayScreenState extends State<PlayScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.episode.title),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.transcribe),
+            onPressed: _transcribeEpisode,
+            tooltip: 'Transcribe Episode',
+          ),
+        ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,6 +133,19 @@ class _PlayScreenState extends State<PlayScreen> {
                 audioPlayerService.skipBackward();
               },
             ),
+
+            if (_transcript != null) ...[
+              const SizedBox(height: 24),
+              const Text(
+                'Transcript:',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(_transcript!),
+            ],
           ],
         ),
       ),

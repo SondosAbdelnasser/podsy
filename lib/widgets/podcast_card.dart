@@ -6,10 +6,10 @@ class PodcastCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const PodcastCard({
-    Key? key,
+    super.key,
     required this.podcast,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

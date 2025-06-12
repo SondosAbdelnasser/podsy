@@ -15,11 +15,16 @@ import 'screens/profile_screen.dart';
 import 'screens/main_navigation.dart';
 import 'screens/users_list_page.dart';
 import 'screens/play_screen.dart';
+import 'screens/transcription_screen.dart';
 import 'utils/supabase_config.dart';
 import 'theme/app_theme.dart';
 import 'services/audio_player_service.dart';
 import 'services/like_service.dart';
 import 'services/deep_link_service.dart';
+import 'services/transcription_service.dart';
+import 'services/embedding_service.dart';
+import 'services/supabase_service.dart';
+import 'providers/transcription_provider.dart';
 import 'widgets/auth_wrapper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -33,6 +38,14 @@ void main() async {
   
   // Initialize Supabase for database
   await SupabaseConfig.initialize();
+  
+  // Create services
+  final transcriptionService = TranscriptionService('7a2e53c8702a4786a0b461a491c46d72');
+  final embeddingService = EmbeddingService(
+    apiKey: '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',
+    provider: EmbeddingProvider.huggingFace,
+  );
+  final supabaseService = SupabaseService(SupabaseConfig.client);
   
   runApp(
     MultiProvider(
@@ -48,6 +61,13 @@ void main() async {
             return LikeService(userId: authProvider.currentUser!.id);
           },
         ),
+        ChangeNotifierProvider(
+          create: (_) => TranscriptionProvider(
+            transcriptionService: transcriptionService,
+            embeddingService: embeddingService,
+            supabaseService: supabaseService,
+          ),
+        ),
       ],
       child: MyApp(),
     ),
@@ -55,7 +75,7 @@ void main() async {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
   
   @override
   State<MyApp> createState() => _MyAppState();
@@ -92,6 +112,15 @@ class _MyAppState extends State<MyApp> {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           return AuthWrapper(
             child: PlayScreen(episode: args['episode']),
+          );
+        },
+        '/transcription': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return AuthWrapper(
+            child: TranscriptionScreen(
+              audioUrl: args['audioUrl'],
+              episodeId: args['episodeId'],
+            ),
           );
         },
       },

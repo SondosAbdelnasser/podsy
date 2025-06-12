@@ -7,7 +7,7 @@ class PodcastDetails extends StatelessWidget {
   final String? description;
   final String? imageUrl;
 
-  PodcastDetails({
+  const PodcastDetails({super.key, 
     required this.title,
     this.description,
     this.imageUrl,

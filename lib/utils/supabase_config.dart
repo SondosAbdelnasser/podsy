@@ -1,5 +1,4 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class SupabaseConfig {
   static const String supabaseUrl = 'https://baxcgruzuycxpllcpqqw.supabase.co';

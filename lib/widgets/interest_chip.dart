@@ -6,7 +6,7 @@ class InterestChip extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const InterestChip({
+  const InterestChip({super.key, 
     required this.interest,
     required this.isSelected,
     required this.onTap,

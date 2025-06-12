@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import '../models/episode.dart';
+import '../services/podcast_service.dart';
 
 class EpisodeCard extends StatelessWidget {
   final Episode episode;
   final VoidCallback onTap;
+  final String ownerName;
 
   const EpisodeCard({
-    Key? key,
+    super.key,
     required this.episode,
     required this.onTap,
-  }) : super(key: key);
+    required this.ownerName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,18 +34,18 @@ class EpisodeCard extends StatelessWidget {
                   color: Colors.black,
                 ),
               ),
-              if (episode.description != null) ...[
-                SizedBox(height: 8),
-                Text(
-                  episode.description!,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+              ...[
+              SizedBox(height: 8),
+              Text(
+                episode.description!,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
                 ),
-              ],
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
               SizedBox(height: 8),
               Row(
                 children: [
@@ -60,6 +63,20 @@ class EpisodeCard extends StatelessWidget {
                   SizedBox(width: 4),
                   Text(
                     _formatDate(episode.publishedAt ?? episode.createdAt),
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.person, size: 16, color: Colors.grey[600]),
+                  SizedBox(width: 4),
+                  Text(
+                    ownerName,
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 14,

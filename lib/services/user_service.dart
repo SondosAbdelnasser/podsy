@@ -13,7 +13,7 @@ class UserService {
         .maybeSingle();
     
     if (response != null) {
-      return UserModel.fromMap(response as Map<String, dynamic>, uid);
+      return UserModel.fromMap(response, uid);
     }
     return null;
   }

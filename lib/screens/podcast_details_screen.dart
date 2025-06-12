@@ -10,9 +10,9 @@ class PodcastDetailsScreen extends StatefulWidget {
   final Podcast podcast;
 
   const PodcastDetailsScreen({
-    Key? key,
+    super.key,
     required this.podcast,
-  }) : super(key: key);
+  });
 
   @override
   State<PodcastDetailsScreen> createState() => _PodcastDetailsScreenState();
@@ -117,8 +117,8 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
           );
           _loadEpisodes();
         },
-        child: Icon(Icons.add),
         backgroundColor: Theme.of(context).primaryColor,
+        child: Icon(Icons.add),
       ) : null,
       body: CustomScrollView(
         slivers: [
@@ -252,10 +252,10 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                             SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: _loadEpisodes,
-                              child: Text('Retry'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Theme.of(context).primaryColor,
                               ),
+                              child: Text('Retry'),
                             ),
                           ],
                         ),
@@ -380,11 +380,10 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                                             ),
                                           ],
                                         ),
-                                        if (episode.description != null &&
-                                            episode.description!.isNotEmpty) ...[
+                                        if (episode.description.isNotEmpty) ...[
                                           SizedBox(height: 8),
                                           Text(
-                                            episode.description!,
+                                            episode.description,
                                             style: TextStyle(
                                               color: Colors.grey[600],
                                               fontSize: 14,

@@ -4,7 +4,7 @@ import '../widgets/podcast_card.dart' as widgets;
 import '../models/podcast.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({Key? key}) : super(key: key);
+  const SearchScreen({super.key});
 
   @override
   _SearchScreenState createState() => _SearchScreenState();

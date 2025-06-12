@@ -4,16 +4,19 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/podcast_service.dart';
+import '../services/embedding_service.dart';
+import '../utils/supabase_config.dart';
+import '../screens/transcription_screen.dart';
 
 class UploadEpisodeScreen extends StatefulWidget {
   final String podcastId;
   final String podcastTitle;
 
   const UploadEpisodeScreen({
-    Key? key,
+    super.key,
     required this.podcastId,
     required this.podcastTitle,
-  }) : super(key: key);
+  });
 
   @override
   _UploadEpisodeScreenState createState() => _UploadEpisodeScreenState();
@@ -23,17 +26,49 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final PodcastService _podcastService = PodcastService();
+  late final PodcastService _podcastService;
   bool _isLoading = false;
   File? _audioFile;
   String? _audioFileName;
   Uint8List? _audioBytes;
+  String? _audioUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    final embeddingService = EmbeddingService(
+      apiKey: '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',
+      provider: EmbeddingProvider.huggingFace,
+    );
+    _podcastService = PodcastService(embeddingService);
+  }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<String> _uploadAudioFile() async {
+    final fileName = _audioFileName ?? '${DateTime.now().millisecondsSinceEpoch}.mp3';
+    final filePath = 'podcasts/${widget.podcastId}/$fileName';
+    
+    if (kIsWeb) {
+      if (_audioBytes == null) throw Exception('No audio bytes provided for web upload');
+      await SupabaseConfig.client.storage
+          .from('podcast-files')
+          .uploadBinary(filePath, _audioBytes!);
+    } else {
+      if (_audioFile == null) throw Exception('No audio file provided for mobile upload');
+      await SupabaseConfig.client.storage
+          .from('podcast-files')
+          .upload(filePath, _audioFile!);
+    }
+
+    return SupabaseConfig.client.storage
+        .from('podcast-files')
+        .getPublicUrl(filePath);
   }
 
   Future<void> _pickAudio() async {
@@ -58,6 +93,46 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error picking audio file: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _transcribeAudio() async {
+    if (_audioFile == null && _audioBytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select an audio file first'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // First upload the audio file to get a URL
+      final audioUrl = await _uploadAudioFile();
+      setState(() => _audioUrl = audioUrl);
+
+      // Navigate to transcription screen
+      final transcript = await Navigator.push<String>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TranscriptionScreen(
+            audioUrl: audioUrl,
+            episodeId: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+          ),
+        ),
+      );
+
+      if (transcript != null && _descriptionController.text.isEmpty) {
+        _descriptionController.text = 'Transcript:\n$transcript';
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -102,6 +177,7 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
         _audioFile = null;
         _audioFileName = null;
         _audioBytes = null;
+        _audioUrl = null;
       });
 
       // Navigate back
@@ -248,55 +324,63 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                             ],
                           ),
                         )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_circle_outline,
-                              size: 32,
-                              color: Colors.grey[400],
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Select Audio File',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 16,
+                      : Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.upload_file,
+                                size: 32,
+                                color: Colors.grey[400],
                               ),
-                            ),
-                            Text(
-                              '(MP3, WAV, etc.)',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 14,
+                              SizedBox(height: 8),
+                              Text(
+                                'Tap to select audio file',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                 ),
               ),
-              SizedBox(height: 32),
+              SizedBox(height: 16),
+
+              // Transcribe Button
+              if (_audioFile != null || _audioBytes != null)
+                ElevatedButton.icon(
+                  onPressed: _transcribeAudio,
+                  icon: Icon(Icons.transcribe),
+                  label: Text('Transcribe Audio'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+
+              SizedBox(height: 24),
 
               // Upload Button
               ElevatedButton(
                 onPressed: _isLoading ? null : _uploadEpisode,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
                 child: _isLoading
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : Text(
-                        'Upload Episode',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
-                      ),
+                      )
+                    : Text('Upload Episode'),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                ),
               ),
             ],
           ),

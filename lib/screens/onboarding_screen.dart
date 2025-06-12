@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/interest_provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key});
+
   @override
   _OnboardingScreenState createState() => _OnboardingScreenState();
 }
@@ -98,7 +100,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   : () {
                       Navigator.pushReplacementNamed(context, '/home');
                     },
-              child: const Text("Continue"),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
                 minimumSize: const Size(double.infinity, 48),
@@ -106,6 +107,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
+              child: const Text("Continue"),
             ),
           ],
         ),

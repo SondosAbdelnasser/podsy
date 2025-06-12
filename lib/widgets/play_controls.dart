@@ -7,7 +7,7 @@ class PlayControls extends StatelessWidget {
   final Function onSkipForwardPressed;
   final Function onSkipBackwardPressed;
 
-  PlayControls({
+  const PlayControls({super.key, 
     required this.isPlaying,
     required this.isLoading,
     required this.onPlayPausePressed,

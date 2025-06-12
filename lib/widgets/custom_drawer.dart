@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';  
 import '../screens/profile_screen.dart';  
 class CustomDrawer extends StatelessWidget {
+  const CustomDrawer({super.key});
+
   @override
   Widget build(BuildContext context) {
     // 

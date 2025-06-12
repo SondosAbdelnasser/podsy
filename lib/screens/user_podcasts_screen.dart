@@ -7,6 +7,8 @@ import '../models/podcast.dart';
 import 'podcast_details_screen.dart';
 
 class UserPodcastsScreen extends StatefulWidget {
+  const UserPodcastsScreen({super.key});
+
   @override
   _UserPodcastsScreenState createState() => _UserPodcastsScreenState();
 }
@@ -180,10 +182,10 @@ class PodcastCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const PodcastCard({
-    Key? key,
+    super.key,
     required this.podcast,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -10,7 +10,7 @@ import 'podcast_details_screen.dart';
 import 'users_list_page.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+  const Home({super.key});
 
   @override
   State<Home> createState() => _HomeScreenState();
@@ -95,7 +95,7 @@ class _HomeScreenState extends State<Home> {
                       ),
                     ),
                     Text(
-                      currentUser?.name?.split(' ')[0] ?? 'User',
+                      currentUser?.name.split(' ')[0] ?? 'User',
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 14,
@@ -222,10 +222,10 @@ class _HomeScreenState extends State<Home> {
                         SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: _loadPodcasts,
-                          child: Text('Retry'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).primaryColor,
                           ),
+                          child: Text('Retry'),
                         ),
                       ],
                     ),
@@ -307,7 +307,7 @@ class _HomeScreenState extends State<Home> {
                                   );
                                 }
 
-                                return Container(
+                                return SizedBox(
                                   height: 280,
                                   child: ListView.builder(
                                     scrollDirection: Axis.horizontal,
@@ -348,7 +348,7 @@ class _HomeScreenState extends State<Home> {
                                 ),
                               ),
                             ),
-                            Container(
+                            SizedBox(
                               height: 280, // Fixed height for horizontal scrolling
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,

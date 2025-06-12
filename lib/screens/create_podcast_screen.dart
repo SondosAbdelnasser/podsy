@@ -9,6 +9,8 @@ import '../services/podcast_service.dart';
 import '../models/podcast_collection.dart';
 
 class CreatePodcastScreen extends StatefulWidget {
+  const CreatePodcastScreen({super.key});
+
   @override
   _CreatePodcastScreenState createState() => _CreatePodcastScreenState();
 }

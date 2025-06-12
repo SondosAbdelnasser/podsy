@@ -5,7 +5,7 @@ class UserListItem extends StatelessWidget {
   final bool is_admin;
   final VoidCallback? onPromote;
 
-  const UserListItem({
+  const UserListItem({super.key, 
     required this.email,
     required this.is_admin,
     this.onPromote,
