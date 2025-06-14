@@ -76,16 +76,17 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
         if (audioPlayerService.isPlaying) {
           audioPlayerService.pauseAudio();
         } else {
-          audioPlayerService.playAudio(episode.audioUrl);
+          audioPlayerService.playAudio(episode.audioUrl, episode: episode);
         }
         return;
       }
 
-      // If a different episode is selected, play it
-      await audioPlayerService.playAudio(episode.audioUrl);
+      // If a different episode is selected, play it and navigate to PlayScreen
+      await audioPlayerService.playAudio(episode.audioUrl, episode: episode);
       setState(() => _currentEpisodeIndex = index);
 
-      // Navigate to PlayScreen
+      // Always navigate to PlayScreen
+      if (!mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(

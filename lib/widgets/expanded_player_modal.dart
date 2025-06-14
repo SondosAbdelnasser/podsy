@@ -102,13 +102,13 @@ class _ExpandedPlayerModalState extends State<ExpandedPlayerModal> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 30),
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.deepPurple, size: 30),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
         title: const Text(
           'Playing Podcast',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
         ),
       ),
       body: Padding(
@@ -189,14 +189,14 @@ class _ExpandedPlayerModalState extends State<ExpandedPlayerModal> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.replay_10, size: 48, color: Colors.blue),
+                  icon: const Icon(Icons.replay_10, size: 48, color: Colors.deepPurple),
                   onPressed: audioPlayerService.skipBackward,
                 ),
                 const SizedBox(width: 20),
                 isLoading
-                    ? const CircularProgressIndicator(strokeWidth: 3)
+                    ? const CircularProgressIndicator(strokeWidth: 3, valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple))
                     : IconButton(
-                        icon: Icon(isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled, size: 72, color: Colors.blue),
+                        icon: Icon(isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled, size: 72, color: Colors.deepPurple),
                         onPressed: () {
                           if (isPlaying) {
                             audioPlayerService.pauseAudio();
@@ -207,7 +207,7 @@ class _ExpandedPlayerModalState extends State<ExpandedPlayerModal> {
                       ),
                 const SizedBox(width: 20),
                 IconButton(
-                  icon: const Icon(Icons.forward_10, size: 48, color: Colors.blue),
+                  icon: const Icon(Icons.forward_10, size: 48, color: Colors.deepPurple),
                   onPressed: audioPlayerService.skipForward,
                 ),
               ],
@@ -218,31 +218,42 @@ class _ExpandedPlayerModalState extends State<ExpandedPlayerModal> {
             Column(
               children: [
                 const Text('Playback Speed', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
-                Slider(
-                  min: 0.5,
-                  max: 2.0,
-                  divisions: 3,
-                  value: playbackSpeed,
-                  onChanged: (value) => audioPlayerService.setPlaybackSpeed(value),
-                  label: '${playbackSpeed.toStringAsFixed(1)}x',
-                  activeColor: Colors.blue,
-                  inactiveColor: Colors.grey[300],
-                ),
+                const SizedBox(height: 8),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [0.5, 1.0, 1.5, 2.0].map((speed) => TextButton(
-                    onPressed: () => audioPlayerService.setPlaybackSpeed(speed),
-                    child: Text(
-                      '${speed.toStringAsFixed(1)}x',
-                      style: TextStyle(color: playbackSpeed == speed ? Colors.blue : Colors.black54),
-                    ),
-                  )).toList(),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildSpeedButton(0.5, '0.5x'),
+                    const SizedBox(width: 8),
+                    _buildSpeedButton(1.0, '1.0x'),
+                    const SizedBox(width: 8),
+                    _buildSpeedButton(1.5, '1.5x'),
+                    const SizedBox(width: 8),
+                    _buildSpeedButton(2.0, '2.0x'),
+                  ],
                 ),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSpeedButton(double speed, String label) {
+    final audioPlayerService = Provider.of<AudioPlayerService>(context);
+    final isSelected = audioPlayerService.playbackSpeed == speed;
+    
+    return ElevatedButton(
+      onPressed: () => audioPlayerService.setPlaybackSpeed(speed),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected ? Theme.of(context).primaryColor : Colors.grey[200],
+        foregroundColor: isSelected ? Colors.white : Colors.black,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      child: Text(label),
     );
   }
 } 
