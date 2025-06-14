@@ -388,7 +388,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                     imageUrl: '',
                                     feedUrl: '',
                                     episodes: episodes.map((e) => podcast_model.Episode(
-                                      id: e.id,
+                                      id: e.id!,
                                       title: e.title,
                                       description: e.description ?? '',
                                       audioUrl: e.audioUrl,

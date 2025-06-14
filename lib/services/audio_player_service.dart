@@ -6,6 +6,7 @@ class AudioPlayerService extends ChangeNotifier {
   bool _isPlaying = false;
   bool _isLoading = false;
   Duration _currentPosition = Duration.zero;
+  String? _currentAudioUrl;
 
   AudioPlayerService() {
     _audioPlayer = AudioPlayer();
@@ -13,38 +14,58 @@ class AudioPlayerService extends ChangeNotifier {
       _currentPosition = position;
       notifyListeners();
     });
+
+    _audioPlayer.playerStateStream.listen((state) {
+      _isPlaying = state.playing;
+      _isLoading = state.processingState == ProcessingState.loading ||
+                   state.processingState == ProcessingState.buffering;
+      notifyListeners();
+    });
   }
 
   bool get isPlaying => _isPlaying;
   bool get isLoading => _isLoading;
   Duration get currentPosition => _currentPosition;
+  String? get currentAudioUrl => _currentAudioUrl;
 
   Future<void> playAudio(String url) async {
     try {
+      // If the same audio is already loaded, just resume playback
+      if (_currentAudioUrl == url) {
+        await _audioPlayer.play();
+        return;
+      }
+
       _isLoading = true;
       notifyListeners();
+
+      // Stop any currently playing audio
+      await _audioPlayer.stop();
+      
+      // Set the new audio source
       await _audioPlayer.setUrl(url);
+      _currentAudioUrl = url;
+      
+      // Start playback
       await _audioPlayer.play();
-      _isPlaying = true;
+      
       _isLoading = false;
       notifyListeners();
     } catch (e) {
       _isLoading = false;
       notifyListeners();
       print("Error playing audio: $e");
+      rethrow;
     }
   }
 
   void pauseAudio() {
     _audioPlayer.pause();
-    _isPlaying = false;
-    notifyListeners();
   }
 
   void stopAudio() {
     _audioPlayer.stop();
-    _isPlaying = false;
-    notifyListeners();
+    _currentAudioUrl = null;
   }
 
   // ==== two function al kona fakrnhom ready w tl3o ehna albn3mlhom =======

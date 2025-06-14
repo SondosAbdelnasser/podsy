@@ -246,12 +246,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         builder: (context) =>
                                             PodcastDetailsScreen(podcast: podcastModel),
                                       ),
-                                    );
+                                    ).then((_) => _loadPodcasts());
                                   },
                                 );
                               },
                               childCount: _podcasts.length,
-              ),
+                ),
             ),
           ],
         ),

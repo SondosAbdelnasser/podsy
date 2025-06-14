@@ -11,6 +11,7 @@ class Podcast {
   final String category;
   final double rating;
   final int episodeCount;
+  final String? userId;
 
   Podcast({
     required this.id,
@@ -23,6 +24,7 @@ class Podcast {
     required this.category,
     required this.rating,
     required this.episodeCount,
+    this.userId,
   });
 
   factory Podcast.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,7 @@ class Podcast {
       category: json['primaryGenreName'] ?? '',
       rating: (json['averageUserRating'] ?? 0.0).toDouble(),
       episodeCount: json['trackCount'] ?? 0,
+      userId: json['userId'] as String?,
     );
   }
 }

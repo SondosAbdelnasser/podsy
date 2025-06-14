@@ -44,22 +44,40 @@ class EpisodeCard extends StatelessWidget {
                 ),
               ],
               SizedBox(height: 8),
+              if (episode.categories.isNotEmpty) ...[
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: episode.categories.map((category) {
+                    return Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        category,
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                SizedBox(height: 8),
+              ],
               Row(
                 children: [
-                  Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+                  Icon(
+                    Icons.access_time,
+                    size: 16,
+                    color: Colors.grey[600],
+                  ),
                   SizedBox(width: 4),
                   Text(
                     _formatDuration(episode.duration),
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
-                  SizedBox(width: 4),
-                  Text(
-                    _formatDate(episode.publishedAt ?? episode.createdAt),
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 14,

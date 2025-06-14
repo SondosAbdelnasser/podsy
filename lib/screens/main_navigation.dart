@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/category_detection_service.dart';
 import 'podcast_home.dart';
 import 'search_screen.dart';
 import 'likes_screen.dart';
@@ -11,6 +13,7 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
+  final CategoryDetectionService _categoryService = CategoryDetectionService();
   
   final List<Widget> _screens = [
     Home(),
@@ -19,10 +22,25 @@ class _MainNavigationState extends State<MainNavigation> {
     UsersListPage(),
   ];
 
+  Future<void> _testWitAiToken() async {
+    final result = await _categoryService.testWitAiToken();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result ? 'Token is valid!' : 'Token validation failed. Check console for details.'),
+        backgroundColor: result ? Colors.green : Colors.red,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
+      floatingActionButton: FloatingActionButton(
+        onPressed: _testWitAiToken,
+        child: Icon(Icons.api),
+        tooltip: 'Test Wit.ai Token',
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [

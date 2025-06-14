@@ -8,9 +8,13 @@ import '../models/episode.dart' as episode_model;
 import '../models/podcast.dart' as podcast_model;
 import '../utils/supabase_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'category_detection_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class PodcastService {
   final SupabaseClient client = SupabaseConfig.client;
+  final CategoryDetectionService _categoryService = CategoryDetectionService();
 
   // Collection methods
   Future<PodcastCollection?> getUserCollection(String userId) async {
@@ -178,8 +182,19 @@ class PodcastService {
         estimatedDuration = Duration.zero;
       }
 
+      // Detect categories from the audio - This is now handled by backend
+      // List<String> categories = []; // This line is no longer needed
+      // try {
+      //   print('Starting category detection for episode: $title');
+      //   categories = await _categoryService.analyzePodcast(audioUrl);
+      //   print('Detected categories: $categories');
+      // } catch (e) {
+      //   print('Error detecting categories: $e');
+      //   // Continue with upload even if category detection fails
+      //   categories = ['Uncategorized'];
+      // }
+
       final episode = episode_model.Episode(
-        id: '',
         collectionId: collectionId,
         title: title,
         description: description,
@@ -188,12 +203,16 @@ class PodcastService {
         publishedAt: DateTime.now(),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        categories: [], // Initialize with empty, backend will update
       );
 
+      Map<String, dynamic> insertedEpisodeData;
       try {
-        await client
+        final response = await client
             .from('episodes')
-            .insert(episode.toMap());
+            .insert(episode.toMap())
+            .select(); // Add .select() to get the inserted data
+        insertedEpisodeData = (response as List).first as Map<String, dynamic>;
       } catch (dbError) {
         // If database insert fails, try to clean up the uploaded file
         try {
@@ -206,8 +225,36 @@ class PodcastService {
         throw Exception('Failed to create episode record: ${dbError.toString()}');
       }
 
+      // Trigger backend for category detection asynchronously
+      _triggerBackendCategoryDetection(insertedEpisodeData['id'] as String, audioUrl);
+
     } catch (e) {
       throw Exception('Upload process failed: ${e.toString()}');
+    }
+  }
+
+  // New function to trigger backend category detection
+  Future<void> _triggerBackendCategoryDetection(String episodeId, String audioUrl) async {
+    try {
+      print('Triggering backend category detection for episodeId: $episodeId');
+      final response = await http.post(
+        Uri.parse('https://supabase.com/dashboard/project/osduwubkohbzyvndzesd/functions/categorize-episode'), // REPLACE THIS WITH YOUR ACTUAL BACKEND ENDPOINT
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'episodeId': episodeId,
+          'audioUrl': audioUrl,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Backend category detection triggered successfully.');
+      } else {
+        print('Failed to trigger backend category detection. Status: ${response.statusCode}, Body: ${response.body}');
+      }
+    } catch (e) {
+      print('Error triggering backend category detection: $e');
     }
   }
 
@@ -217,6 +264,7 @@ class PodcastService {
           .from('episodes')
           .select()
           .eq('collection_id', collectionId)
+          .eq('is_deleted', false)
           .order('published_at', ascending: false);
       
       return (response as List).map((doc) {
@@ -312,7 +360,7 @@ class PodcastService {
       await client
           .from('episodes')
           .update(updatedEpisode.toMap())
-          .eq('id', episode.id);
+          .eq('id', episode.id!);
     } catch (e) {
       throw Exception('Failed to update episode: ${e.toString()}');
     }
@@ -347,10 +395,12 @@ class PodcastService {
             *,
             episodes(*)
           ''')
+          .eq('is_deleted', false)
           .order('created_at', ascending: false);
       
       return (response as List).map((doc) {
         final episodes = (doc['episodes'] as List? ?? [])
+            .where((episode) => episode['is_deleted'] == false)
             .map((episode) {
               // Parse duration string (format: "HH:MM:SS")
               int durationInSeconds = 0;
@@ -482,6 +532,58 @@ class PodcastService {
       return (hours * 3600 + minutes * 60 + seconds); // Convert to milliseconds
     }
     return 0;
+  }
+
+  Future<String> _getFirebaseIdToken() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+    final token = await user.getIdToken();
+    if (token == null) {
+      throw Exception('Failed to get ID token');
+    }
+    return token;
+  }
+
+  Future<void> categorizeEpisode(String episodeId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${SupabaseConfig.supabaseUrl}/functions/v1/categorize-episode'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({ 'episodeId': episodeId }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to categorize episode: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error categorizing episode: $e');
+    }
+  }
+
+  Future<void> softDeletePodcast(String podcastId) async {
+    try {
+      await client
+          .from('podcast_collections')
+          .update({'is_deleted': true})
+          .eq('id', podcastId);
+    } catch (e) {
+      throw Exception('Failed to soft delete podcast: ${e.toString()}');
+    }
+  }
+
+  Future<void> softDeleteEpisode(String episodeId) async {
+    try {
+      await client
+          .from('episodes')
+          .update({'is_deleted': true})
+          .eq('id', episodeId);
+    } catch (e) {
+      throw Exception('Failed to soft delete episode: ${e.toString()}');
+    }
   }
 }
 

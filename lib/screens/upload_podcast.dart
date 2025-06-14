@@ -79,6 +79,7 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Upload the episode
       await _podcastService.uploadEpisode(
         collectionId: widget.podcastId,
         title: _titleController.text.trim(),
@@ -87,6 +88,14 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
         audioBytes: _audioBytes,
         audioFileName: _audioFileName,
       );
+
+      // Get the latest episode ID
+      final episodes = await _podcastService.getCollectionEpisodes(widget.podcastId);
+      if (episodes.isNotEmpty) {
+        final latestEpisode = episodes.first;
+        // Trigger categorization
+        await _podcastService.categorizeEpisode(latestEpisode.id!);
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

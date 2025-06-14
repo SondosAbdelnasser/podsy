@@ -5,6 +5,9 @@ import '../services/podcast_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'upload_podcast.dart';
 import '../screens/play_screen.dart';
+import 'package:provider/provider.dart';
+import '../services/audio_player_service.dart';
+import '../providers/auth_provider.dart';
 
 class PodcastDetailsScreen extends StatefulWidget {
   final Podcast podcast;
@@ -26,11 +29,18 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
   String? _error;
   int? _currentEpisodeIndex;
   bool _isPlaying = false;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
-    _loadEpisodes();
+    _initializeUserAndLoadEpisodes();
+  }
+
+  Future<void> _initializeUserAndLoadEpisodes() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    _currentUserId = authProvider.currentUser?.id;
+    await _loadEpisodes();
   }
 
   @override
@@ -61,25 +71,29 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
 
   Future<void> _playEpisode(episode_model.Episode episode, int index) async {
     try {
-      // Navigate to PlayScreen first
+      final audioPlayerService = Provider.of<AudioPlayerService>(context, listen: false);
+      
+      // If the same episode is already playing, toggle play/pause
+      if (_currentEpisodeIndex == index) {
+        if (audioPlayerService.isPlaying) {
+          audioPlayerService.pauseAudio();
+        } else {
+          audioPlayerService.playAudio(episode.audioUrl);
+        }
+        return;
+      }
+
+      // If a different episode is selected, play it
+      await audioPlayerService.playAudio(episode.audioUrl);
+      setState(() => _currentEpisodeIndex = index);
+
+      // Navigate to PlayScreen
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => PlayScreen(episode: episode),
         ),
       );
-
-      if (_currentEpisodeIndex == index && _isPlaying) {
-        await _audioPlayer.pause();
-        setState(() => _isPlaying = false);
-      } else {
-        if (_currentEpisodeIndex != index) {
-          await _audioPlayer.setUrl(episode.audioUrl);
-          setState(() => _currentEpisodeIndex = index);
-        }
-        await _audioPlayer.play();
-        setState(() => _isPlaying = true);
-      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -98,6 +112,51 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
     return duration.inHours > 0
         ? '$hours:$minutes:$seconds'
         : '$minutes:$seconds';
+  }
+
+  Future<void> _showDeleteConfirmationDialog(bool isEpisode, String id, String title) async {
+    if (id.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cannot delete: Invalid ID')),
+      );
+      return;
+    }
+
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete ${isEpisode ? 'Episode' : 'Podcast'}'),
+          content: Text('Are you sure you want to delete "${title}"? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                try {
+                  if (isEpisode) {
+                    await _podcastService.softDeleteEpisode(id);
+                    await _loadEpisodes(); // Reload episodes after deletion
+                  } else {
+                    await _podcastService.softDeletePodcast(id);
+                    Navigator.of(context).pop(); // Close details screen
+                    Navigator.of(context).pop(); // Go back to previous screen
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete: ${e.toString()}')),
+                  );
+                }
+                Navigator.of(context).pop(); // Close dialog
+              },
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -120,6 +179,16 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
         child: Icon(Icons.add),
         backgroundColor: Theme.of(context).primaryColor,
       ) : null,
+      appBar: AppBar(
+        title: Text(widget.podcast.title),
+        actions: [
+          if (widget.podcast.userId == _currentUserId)
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () => _showDeleteConfirmationDialog(false, widget.podcast.id, widget.podcast.title),
+            ),
+        ],
+      ),
       body: CustomScrollView(
         slivers: [
           // Podcast Header
@@ -207,12 +276,17 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                     ],
                   ),
                   SizedBox(height: 16),
-                  Text(
-                    widget.podcast.description,
-                    style: TextStyle(
-                      color: Colors.grey[800],
-                      fontSize: 16,
-                      height: 1.5,
+                  Container(
+                    height: 100,
+                    child: SingleChildScrollView(
+                      child: Text(
+                        widget.podcast.description,
+                        style: TextStyle(
+                          color: Colors.grey[800],
+                          fontSize: 16,
+                          height: 1.5,
+                        ),
+                      ),
                     ),
                   ),
                   SizedBox(height: 24),
@@ -283,7 +357,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  'Be the first to upload an episode!',
+                                  'Upload an episode',
                                   style: TextStyle(
                                     color: Colors.grey[600],
                                     fontSize: 16,
@@ -318,7 +392,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                           delegate: SliverChildBuilderDelegate(
                             (context, index) {
                               final episode = _episodes[index];
-                              final isCurrentEpisode = _currentEpisodeIndex == index;
+                              if (episode.id == null) return SizedBox.shrink(); // Skip episodes without IDs
                               return Card(
                                 margin: EdgeInsets.symmetric(
                                   horizontal: 16,
@@ -329,7 +403,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   side: BorderSide(
-                                    color: isCurrentEpisode
+                                    color: _currentEpisodeIndex == index
                                         ? Theme.of(context).primaryColor
                                         : Colors.grey[200]!,
                                     width: 1,
@@ -338,63 +412,82 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                                 child: InkWell(
                                   onTap: () => _playEpisode(episode, index),
                                   borderRadius: BorderRadius.circular(12),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              isCurrentEpisode && _isPlaying
-                                                  ? Icons.pause_circle_filled
-                                                  : Icons.play_circle_filled,
-                                              size: 32,
-                                              color: Theme.of(context).primaryColor,
-                                            ),
-                                            SizedBox(width: 12),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    episode.title,
-                                                    style: TextStyle(
-                                                      color: Colors.black,
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                    maxLines: 2,
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                  SizedBox(height: 4),
-                                                  Text(
-                                                    _formatDuration(episode.duration),
-                                                    style: TextStyle(
-                                                      color: Colors.grey[600],
-                                                      fontSize: 14,
-                                                    ),
-                                                  ),
-                                                ],
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final audioPlayerService = Provider.of<AudioPlayerService>(context);
+                                      final isCurrentEpisode = _currentEpisodeIndex == index;
+                                      final isPlaying = isCurrentEpisode && audioPlayerService.isPlaying;
+                                      
+                                      return IntrinsicHeight(
+                                        child: Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              IconButton(
+                                                icon: Icon(
+                                                  isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                                                  size: 32,
+                                                ),
+                                                color: Theme.of(context).primaryColor,
+                                                onPressed: () => _playEpisode(episode, index),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                        if (episode.description != null &&
-                                            episode.description!.isNotEmpty) ...[
-                                          SizedBox(height: 8),
-                                          Text(
-                                            episode.description!,
-                                            style: TextStyle(
-                                              color: Colors.grey[600],
-                                              fontSize: 14,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
+                                              SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            episode.title,
+                                                            style: TextStyle(
+                                                              color: Colors.black,
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w600,
+                                                            ),
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ),
+                                                        if (widget.podcast.userId == _currentUserId)
+                                                          IconButton(
+                                                            icon: Icon(Icons.delete_outline, color: Colors.red),
+                                                            onPressed: () => _showDeleteConfirmationDialog(true, episode.id!, episode.title),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                    SizedBox(height: 4),
+                                                    Text(
+                                                      _formatDuration(episode.duration),
+                                                      style: TextStyle(
+                                                        color: Colors.grey[600],
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                    if (episode.description != null &&
+                                                        episode.description!.isNotEmpty) ...[
+                                                      SizedBox(height: 8),
+                                                      Text(
+                                                        episode.description!,
+                                                        style: TextStyle(
+                                                          color: Colors.grey[600],
+                                                          fontSize: 14,
+                                                        ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ],
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ],
-                                    ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                               );

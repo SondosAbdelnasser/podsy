@@ -5,6 +5,7 @@ import '../services/podcast_service.dart';
 import '../models/podcast_collection.dart';
 import '../models/podcast.dart';
 import 'podcast_details_screen.dart';
+import '../widgets/podcast_card.dart';
 
 class UserPodcastsScreen extends StatefulWidget {
   @override
@@ -16,6 +17,7 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
   bool _isLoading = true;
   List<PodcastCollection> _podcasts = [];
   String? _error;
+  String? _currentUserId;
 
   @override
   void initState() {
@@ -37,6 +39,7 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
         throw Exception('User not authenticated');
       }
 
+      _currentUserId = currentUser.id;
       final podcasts = await _podcastService.getUserCollections(currentUser.id);
       setState(() {
         _podcasts = podcasts;
@@ -50,13 +53,48 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
     }
   }
 
+  Future<void> _showDeleteConfirmationDialog(String podcastId, String podcastTitle) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Podcast'),
+          content: Text('Are you sure you want to delete "${podcastTitle}"? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                try {
+                  await _podcastService.softDeletePodcast(podcastId);
+                  await _loadPodcasts(); // Reload podcasts after deletion
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Podcast deleted successfully!')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete podcast: ${e.toString()}')),
+                  );
+                }
+                Navigator.of(context).pop(); // Close dialog
+              },
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('My Podcasts'),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
         actions: [
           IconButton(
@@ -68,7 +106,7 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
           ),
         ],
       ),
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       body: RefreshIndicator(
         onRefresh: _loadPodcasts,
         child: _isLoading
@@ -80,7 +118,7 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
                       children: [
                         Text(
                           'Error loading podcasts',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
+                          style: TextStyle(color: Colors.black87, fontSize: 16),
                         ),
                         SizedBox(height: 8),
                         Text(
@@ -91,6 +129,9 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
                         ElevatedButton(
                           onPressed: _loadPodcasts,
                           child: Text('Retry'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                          ),
                         ),
                       ],
                     ),
@@ -103,13 +144,13 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
                             Icon(
                               Icons.mic_none,
                               size: 64,
-                              color: Colors.white54,
+                              color: Colors.grey[400],
                             ),
                             SizedBox(height: 16),
                             Text(
                               'No podcasts yet',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Colors.black,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -118,7 +159,7 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
                             Text(
                               'Create your first podcast!',
                               style: TextStyle(
-                                color: Colors.white54,
+                                color: Colors.grey[600],
                                 fontSize: 16,
                               ),
                             ),
@@ -132,6 +173,7 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
                               icon: Icon(Icons.add),
                               label: Text('Create Podcast'),
                               style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).primaryColor,
                                 padding: EdgeInsets.symmetric(
                                     horizontal: 24, vertical: 12),
                               ),
@@ -144,6 +186,7 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
                         itemCount: _podcasts.length,
                         itemBuilder: (context, index) {
                           final podcast = _podcasts[index];
+                          final isMyPodcast = _currentUserId == podcast.userId;
                           return PodcastCard(
                             podcast: podcast,
                             onTap: () {
@@ -158,6 +201,7 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
                                 category: 'Personal',
                                 rating: 0.0,
                                 episodeCount: 0,
+                                userId: podcast.userId,
                               );
                               Navigator.push(
                                 context,
@@ -165,8 +209,14 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
                                   builder: (context) =>
                                       PodcastDetailsScreen(podcast: podcastModel),
                                 ),
-                              );
+                              ).then((_) => _loadPodcasts());
                             },
+                            trailing: isMyPodcast
+                                ? IconButton(
+                                    icon: Icon(Icons.delete_outline, color: Colors.red),
+                                    onPressed: () => _showDeleteConfirmationDialog(podcast.id, podcast.title),
+                                  )
+                                : null,
                           );
                         },
                       ),
@@ -178,20 +228,24 @@ class _UserPodcastsScreenState extends State<UserPodcastsScreen> {
 class PodcastCard extends StatelessWidget {
   final PodcastCollection podcast;
   final VoidCallback onTap;
+  final Widget? trailing;
 
   const PodcastCard({
     Key? key,
     required this.podcast,
     required this.onTap,
+    this.trailing,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.only(bottom: 16),
-      color: Colors.white10,
+      color: Colors.white,
+      elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[200]!, width: 1),
       ),
       child: InkWell(
         onTap: onTap,
@@ -213,7 +267,7 @@ class PodcastCard extends StatelessWidget {
                     child: Text(
                       podcast.title,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Colors.black87,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -221,7 +275,7 @@ class PodcastCard extends StatelessWidget {
                   ),
                   Icon(
                     Icons.chevron_right,
-                    color: Colors.white54,
+                    color: Colors.grey[400],
                   ),
                 ],
               ),
@@ -231,7 +285,7 @@ class PodcastCard extends StatelessWidget {
                   child: Text(
                     podcast.description!,
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.grey[600],
                       fontSize: 14,
                     ),
                     maxLines: 2,
@@ -243,7 +297,7 @@ class PodcastCard extends StatelessWidget {
                 child: Text(
                   'Created ${_formatDate(podcast.createdAt)}',
                   style: TextStyle(
-                    color: Colors.white38,
+                    color: Colors.grey[500],
                     fontSize: 12,
                   ),
                 ),

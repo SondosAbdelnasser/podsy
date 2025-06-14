@@ -49,6 +49,8 @@ dependencies:
   path: ^1.9.1
   http: ^1.1.0  # Added for API calls
   just_audio: ^0.9.36  # Added for audio playback
+  flutter_dotenv: ^5.1.0
+  ffmpeg_kit_flutter_audio: ^6.0.3
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -77,6 +79,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
       - assets\animations\Animation - 1745259806692.json
+      - .env
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

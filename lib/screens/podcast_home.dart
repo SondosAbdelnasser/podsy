@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/podcast_service.dart';
 import '../models/podcast.dart';
+import '../models/episode.dart' as episode_model;
 import '../widgets/podcast_card.dart' as widgets;
 import '../widgets/episode_tile.dart';
 import 'profile_screen.dart';
@@ -292,9 +293,9 @@ class _HomeScreenState extends State<Home> {
                                   );
                                 }
 
-                                final followedEpisodes = snapshot.data ?? [];
+                                final followedPodcasts = snapshot.data ?? [];
                                 
-                                if (followedEpisodes.isEmpty) {
+                                if (followedPodcasts.isEmpty) {
                                   return Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 16),
                                     child: Text(
@@ -312,9 +313,9 @@ class _HomeScreenState extends State<Home> {
                                   child: ListView.builder(
                                     scrollDirection: Axis.horizontal,
                                     padding: EdgeInsets.symmetric(horizontal: 16),
-                                    itemCount: followedEpisodes.length,
+                                    itemCount: followedPodcasts.length,
                                     itemBuilder: (context, index) {
-                                      final podcast = followedEpisodes[index];
+                                      final podcast = followedPodcasts[index];
                                       return Container(
                                         width: 200,
                                         margin: EdgeInsets.only(right: 16),
@@ -357,7 +358,7 @@ class _HomeScreenState extends State<Home> {
                                 itemBuilder: (context, index) {
                                   final podcast = _podcasts[index];
                                   return Container(
-                                    width: 200, // Fixed width for each podcast card
+                                    width: 200,
                                     margin: EdgeInsets.only(right: 16),
                                     child: widgets.PodcastCard(
                                       podcast: podcast,
@@ -406,8 +407,8 @@ class _HomeScreenState extends State<Home> {
                                 final followedPodcasts = snapshot.data ?? [];
                                 final allEpisodes = followedPodcasts
                                     .expand((podcast) => podcast.episodes)
-                                    .toList()
-                                  ..sort((a, b) => b.publishDate.compareTo(a.publishDate));
+                                    .toList();
+                                  //..sort((a, b) => b.publishedAt!.compareTo(a.publishedAt!));
 
                                 if (allEpisodes.isEmpty) {
                                   return Padding(
@@ -472,7 +473,7 @@ class _HomeScreenState extends State<Home> {
                                               ),
                                             ),
                                             Text(
-                                              '${_formatDuration(episode.duration)} • ${_formatDate(episode.publishDate)}',
+                                              '${_formatDuration(Duration(milliseconds: episode.duration))} • ${_formatDate(episode.publishDate)}',
                                               style: TextStyle(
                                                 color: Colors.black54,
                                                 fontSize: 12,
@@ -508,8 +509,7 @@ class _HomeScreenState extends State<Home> {
     );
   }
 
-  String _formatDuration(int milliseconds) {
-    final duration = Duration(milliseconds: milliseconds);
+  String _formatDuration(Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final seconds = duration.inSeconds.remainder(60);

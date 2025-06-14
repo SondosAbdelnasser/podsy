@@ -22,9 +22,21 @@ import 'services/like_service.dart';
 import 'services/deep_link_service.dart';
 import 'widgets/auth_wrapper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'models/podcast.dart';
+import 'screens/podcast_details_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  print('=== Loading .env file ===');
+  try {
+    await dotenv.load(fileName: ".env");
+    print('Environment variables loaded: ${dotenv.env}');
+    print('WIT_AI_TOKEN loaded: ${dotenv.env['WIT_AI_TOKEN']}');
+  } catch (e) {
+    print('Error loading .env file: $e');
+  }
   
   // Initialize Firebase for authentication
   await Firebase.initializeApp(
@@ -94,6 +106,16 @@ class _MyAppState extends State<MyApp> {
             child: PlayScreen(episode: args['episode']),
           );
         },
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/podcast-details') {
+          final podcast = settings.arguments as Podcast; // Cast the argument to Podcast
+          return MaterialPageRoute(
+            builder: (context) => PodcastDetailsScreen(podcast: podcast),
+          );
+        }
+        // Handle other routes if needed, or return null for unknown routes
+        return null;
       },
     );
   }

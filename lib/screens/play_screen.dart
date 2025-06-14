@@ -23,13 +23,21 @@ class _PlayScreenState extends State<PlayScreen> {
   void initState() {
     super.initState();
     final likeService = Provider.of<LikeService>(context, listen: false);
-    likeService.checkIfLiked(widget.episode.id);
+    likeService.checkIfLiked(widget.episode.id!);
+    
+    // // Ensure the episode is playing when the screen opens
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   final audioPlayerService = Provider.of<AudioPlayerService>(context, listen: false);
+    //   if (audioPlayerService.currentAudioUrl != widget.episode.audioUrl) {
+    //     audioPlayerService.playAudio(widget.episode.audioUrl);
+    //   }
+    // });
   }
 
   Future<void> _shareEpisode() async {
     try {
       await _shareService.shareEpisode(
-        episodeId: widget.episode.id,
+        episodeId: widget.episode.id!,
         title: widget.episode.title,
         description: widget.episode.description ?? '',
         audioUrl: widget.episode.audioUrl,
@@ -52,7 +60,11 @@ class _PlayScreenState extends State<PlayScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.episode.title),
+        // backgroundColor: Colors.white,
+        // foregroundColor: Colors.black,
+        // elevation: 0,
       ),
+     // backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -69,7 +81,7 @@ class _PlayScreenState extends State<PlayScreen> {
               children: [
                 LikeButton(
                   isLiked: likeService.isLiked,
-                  onPressed: () => likeService.toggleLike(widget.episode.id),
+                  onPressed: () => likeService.toggleLike(widget.episode.id!),
                 ),
                 const SizedBox(width: 8),
                 IconButton(
