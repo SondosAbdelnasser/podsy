@@ -43,6 +43,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final podcasts = await _podcastService.getUserCollections(currentUser.id);
       final followersCount = await _podcastService.getFollowersCount(currentUser.id);
       final followingCount = await _podcastService.getFollowingCount(currentUser.id);
+
+      print('DEBUG: _loadPodcasts called.');
+      print('DEBUG: Fetched followersCount: $followersCount');
+      print('DEBUG: Fetched followingCount: $followingCount');
+
       setState(() {
         _podcasts = podcasts;
         _followersCount = followersCount;
@@ -54,6 +59,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _error = e.toString();
         _isLoading = false;
       });
+      print('ERROR in _loadPodcasts: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading podcasts: ${e.toString()}')),
+      );
     }
   }
 
@@ -174,38 +183,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                     SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => FollowRequestsScreen(),
-                              ),
-                            );
-                          },
-                          icon: Icon(Icons.person_add),
-                          label: Text('Follow Requests'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FollowRequestsScreen(),
                           ),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: () async {
-                            await Navigator.pushNamed(context, '/createPodcast');
-                            _loadPodcasts();
-                          },
-                          icon: Icon(Icons.add),
-                          label: Text('Create Podcast'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          ),
-                        ),
-                      ],
+                        );
+                        _loadPodcasts();
+                      },
+                      icon: Icon(Icons.person_add),
+                      label: Text('Follow Requests'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
                     ),
                   ],
                 ),
@@ -226,6 +219,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.add, color: Theme.of(context).primaryColor),
+                      onPressed: () async {
+                        await Navigator.pushNamed(context, '/createPodcast');
+                        _loadPodcasts();
+                      },
                     ),
                   ],
                 ),

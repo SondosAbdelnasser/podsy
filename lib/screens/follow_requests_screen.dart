@@ -61,21 +61,27 @@ class _FollowRequestsScreenState extends State<FollowRequestsScreen> {
   Future<void> _handleFollowRequest(String followId, bool accept) async {
     try {
       if (accept) {
+        print('DEBUG: Attempting to accept follow request with ID: $followId');
         await _followService.acceptFollowRequest(followId);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Follow request accepted')),
         );
+        print('DEBUG: Follow request accepted for ID: $followId');
       } else {
+        print('DEBUG: Attempting to reject follow request with ID: $followId');
         await _followService.rejectFollowRequest(followId);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Follow request rejected')),
         );
+        print('DEBUG: Follow request rejected for ID: $followId');
       }
       _loadPendingRequests(); // Refresh the list
+      print('DEBUG: _loadPendingRequests called after handling request.');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error handling follow request: ${e.toString()}')),
       );
+      print('ERROR in _handleFollowRequest: $e'); // Add error logging
     }
   }
 

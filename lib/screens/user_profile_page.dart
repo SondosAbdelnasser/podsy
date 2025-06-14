@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/podcast.dart' as podcast_model;
 import '../screens/podcast_details_screen.dart';
 import '../services/follow_service.dart';
+import '../models/follow.dart'; // Import Follow model for FollowStatus
 
 class UserProfilePage extends StatefulWidget {
   final String userId;
@@ -118,17 +119,37 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
       if (_isFollowing) {
         // Unfollow
-        await _followService.rejectFollowRequest(currentUser.uid);
-        setState(() {
-          _followersCount--;
-          _isFollowing = false;
-        });
+        final followEntry = await _supabase
+            .from('follows')
+            .select('id')
+            .eq('follower_id', currentUser.uid)
+            .eq('followed_id', widget.userId)
+            .eq('status', FollowStatus.accepted.toString().split('.').last)
+            .maybeSingle();
+
+        if (followEntry != null) {
+          await _followService.rejectFollowRequest(followEntry['id']);
+          setState(() {
+            _followersCount--;
+            _isFollowing = false;
+          });
+        }
       } else if (_hasPendingRequest) {
         // Cancel pending request
-        await _followService.rejectFollowRequest(currentUser.uid);
-        setState(() {
-          _hasPendingRequest = false;
-        });
+        final followEntry = await _supabase
+            .from('follows')
+            .select('id')
+            .eq('follower_id', currentUser.uid)
+            .eq('followed_id', widget.userId)
+            .eq('status', FollowStatus.pending.toString().split('.').last)
+            .maybeSingle();
+
+        if (followEntry != null) {
+          await _followService.rejectFollowRequest(followEntry['id']);
+          setState(() {
+            _hasPendingRequest = false;
+          });
+        }
       } else {
         // Send follow request
         await _followService.sendFollowRequest(currentUser.uid, widget.userId);
