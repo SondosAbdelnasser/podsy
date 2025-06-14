@@ -26,15 +26,18 @@ class _SplashScreenState extends State<SplashScreen> {
       await Future.delayed(Duration(milliseconds: 100));
     }
 
-    if (authProvider.isLoggedIn) {
-      if (authProvider.is_admin) {
-        Navigator.pushReplacementNamed(context, '/adminDashboard');
+    // Use Future.microtask to ensure navigation happens after the build is complete
+    Future.microtask(() {
+      if (authProvider.isLoggedIn) {
+        if (authProvider.is_admin) {
+          Navigator.pushReplacementNamed(context, '/adminDashboard');
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       } else {
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/login');
       }
-    } else {
-      Navigator.pushReplacementNamed(context, '/login');
-    }
+    });
   }
 
   @override
