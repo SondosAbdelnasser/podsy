@@ -4,11 +4,13 @@ class UserListItem extends StatelessWidget {
   final String email;
   final bool is_admin;
   final VoidCallback? onPromote;
+  final VoidCallback? onDelete;
 
   const UserListItem({
     required this.email,
     required this.is_admin,
     this.onPromote,
+    this.onDelete,
   });
 
   @override
@@ -16,12 +18,24 @@ class UserListItem extends StatelessWidget {
     return ListTile(
       title: Text(email),
       subtitle: Text("Role: ${is_admin ? 'Admin' : 'User'}"),
-      trailing: !is_admin
-          ? ElevatedButton(
-              onPressed: onPromote,
-              child: Text("Promote to Admin"),
-            )
-          : null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!is_admin && onPromote != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: ElevatedButton(
+                onPressed: onPromote,
+                child: Text("Promote"),
+              ),
+            ),
+          if (onDelete != null)
+            IconButton(
+              icon: Icon(Icons.delete_outline, color: Colors.red),
+              onPressed: onDelete,
+            ),
+        ],
+      ),
     );
   }
 }

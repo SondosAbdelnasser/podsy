@@ -40,4 +40,15 @@ class UserService {
         .update({'is_admin': isAdmin})
         .eq('id', uid);
   }
+
+  Future<void> softDeleteUser(String uid) async {
+    try {
+      await client
+          .from('users')
+          .update({'is_deleted': true})
+          .eq('id', uid);
+    } catch (e) {
+      throw Exception('Failed to soft delete user: ${e.toString()}');
+    }
+  }
 }

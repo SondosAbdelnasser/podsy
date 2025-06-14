@@ -386,7 +386,7 @@ class PodcastService {
     }
   }
 
-  // Get all podcasts
+  // Get all podcasts (excluding soft-deleted ones for regular user view)
   Future<List<podcast_model.Podcast>> getAllPodcasts() async {
     try {
       final response = await client
@@ -395,12 +395,12 @@ class PodcastService {
             *,
             episodes(*)
           ''')
-          .eq('is_deleted', false)
+          .eq('is_deleted', false) // Filter out soft-deleted podcasts
           .order('created_at', ascending: false);
       
       return (response as List).map((doc) {
         final episodes = (doc['episodes'] as List? ?? [])
-            .where((episode) => episode['is_deleted'] == false)
+            .where((episode) => episode['is_deleted'] == false) // Filter out soft-deleted episodes
             .map((episode) {
               // Parse duration string (format: "HH:MM:SS")
               int durationInSeconds = 0;
@@ -439,11 +439,73 @@ class PodcastService {
           category: 'Personal', // Default category since it's not in the schema
           rating: 0.0, // Default rating since it's not in the schema
           episodeCount: episodes.length,
+          userId: doc['user_id'] as String?, // Pass the user_id
         );
       }).toList();
     } catch (e) {
       print('Error in getAllPodcasts: $e'); // Add logging
       throw Exception('Failed to fetch podcasts: ${e.toString()}');
+    }
+  }
+
+  // New method for admin to get all podcasts (including soft-deleted ones)
+  Future<List<podcast_model.Podcast>> getAllPodcastsForAdmin() async {
+    try {
+      final response = await client
+          .from('podcast_collections')
+          .select('''
+            *,
+            episodes(*)
+          ''')
+          // No .eq('is_deleted', false) filter here for admin view
+          .order('created_at', ascending: false);
+      
+      return (response as List).map((doc) {
+        final episodes = (doc['episodes'] as List? ?? [])
+            .map((episode) { // No filtering by is_deleted for admin view of episodes
+              // Parse duration string (format: "HH:MM:SS")
+              int durationInSeconds = 0;
+              if (episode['duration'] != null) {
+                final durationStr = episode['duration'] as String;
+                final parts = durationStr.split(':');
+                if (parts.length == 3) {
+                  durationInSeconds = int.parse(parts[0]) * 3600 + // hours
+                                    int.parse(parts[1]) * 60 +    // minutes
+                                    int.parse(parts[2]);          // seconds
+                }
+              }
+
+              return podcast_model.Episode(
+                id: episode['id'] as String? ?? '',
+                title: episode['title'] as String? ?? '',
+                description: episode['description'] as String? ?? '',
+                audioUrl: episode['audio_url'] as String? ?? '',
+                publishDate: episode['published_at'] != null 
+                    ? DateTime.parse(episode['published_at'] as String)
+                    : DateTime.now(),
+                duration: durationInSeconds * 1000, // Convert to milliseconds
+                imageUrl: '', // No image URL in episodes table
+              );
+            })
+            .toList();
+        
+        return podcast_model.Podcast(
+          id: doc['id'] as String? ?? '',
+          title: doc['title'] as String? ?? '',
+          author: 'User', // Default author since it's not in the schema
+          description: doc['description'] as String? ?? '',
+          imageUrl: doc['image_url'] as String? ?? '', // Use the image URL from the collection
+          feedUrl: '', // No feed URL in schema
+          episodes: episodes,
+          category: 'Personal', // Default category since it's not in the schema
+          rating: 0.0, // Default rating since it's not in the schema
+          episodeCount: episodes.length,
+          userId: doc['user_id'] as String?, // Pass the user_id
+        );
+      }).toList();
+    } catch (e) {
+      print('Error in getAllPodcastsForAdmin: $e'); // Add logging
+      throw Exception('Failed to fetch all podcasts for admin: ${e.toString()}');
     }
   }
 
@@ -483,12 +545,14 @@ class PodcastService {
             episodes(*)
           ''')
           .filter('user_id', 'in', followingIds)
+          .eq('is_deleted', false) // Filter out soft-deleted podcasts
           .order('created_at', ascending: false);
 
       print('Podcasts response: $podcastsResponse');
 
       return (podcastsResponse as List).map((doc) {
         final episodes = (doc['episodes'] as List? ?? [])
+            .where((episode) => episode['is_deleted'] == false) // Filter out soft-deleted episodes
             .map((episode) => podcast_model.Episode(
                   id: episode['id'] as String? ?? '',
                   title: episode['title'] as String? ?? '',
@@ -513,6 +577,7 @@ class PodcastService {
           category: doc['category'] as String? ?? 'Uncategorized',
           rating: 0.0, // Default rating
           episodeCount: episodes.length,
+          userId: doc['user_id'] as String?, // Pass the user_id
         );
       }).toList();
     } catch (e, stackTrace) {

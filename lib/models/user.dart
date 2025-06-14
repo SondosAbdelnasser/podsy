@@ -7,6 +7,7 @@ class UserModel {
   final bool autoAcceptFollows;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool isDeleted;
 
   UserModel({
     required this.id,
@@ -17,6 +18,7 @@ class UserModel {
     required this.autoAcceptFollows,
     required this.createdAt,
     required this.updatedAt,
+    this.isDeleted = false,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -29,6 +31,7 @@ class UserModel {
       autoAcceptFollows: data['auto_accept_follows'] ?? true,
       createdAt: DateTime.parse(data['created_at']),
       updatedAt: DateTime.parse(data['updated_at']),
+      isDeleted: data['is_deleted'] ?? false,
     );
   }
 
@@ -42,6 +45,7 @@ class UserModel {
       'auto_accept_follows': autoAcceptFollows,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'is_deleted': isDeleted,
     };
   }
 }

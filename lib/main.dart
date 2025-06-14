@@ -109,6 +109,7 @@ class _MyAppState extends State<MyApp> {
                 child: PlayScreen(episode: args['episode']),
               );
             },
+            '/adminDashboard': (context) => AuthWrapper(child: AdminDashboardScreen()),
           },
           // onGenerateRoute: (settings) {
           //   if (settings.name == '/podcast-details') {

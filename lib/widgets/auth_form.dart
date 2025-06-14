@@ -40,16 +40,10 @@ class _AuthFormState extends State<AuthForm> {
         await authProvider.signUp(email, password);
       }
 
-      if (authProvider.is_admin != null) {
-        Navigator.pushReplacementNamed(
-          context,
-          authProvider.is_admin ? '/admin' : '/home',
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Login failed or user role not found.")),
-        );
-      }
+      Navigator.pushReplacementNamed(
+        context,
+        authProvider.is_admin ? '/adminDashboard' : '/home',
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.toString()}")),
@@ -87,16 +81,10 @@ class _AuthFormState extends State<AuthForm> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.signInWithGoogle();
 
-      if (authProvider.is_admin != null) {
-        Navigator.pushReplacementNamed(
-          context,
-          authProvider.is_admin ? '/admin' : '/home',
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Login failed or user role not found.")),
-        );
-      }
+      Navigator.pushReplacementNamed(
+        context,
+        authProvider.is_admin ? '/adminDashboard' : '/home',
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Google Sign-In failed: ${e.toString()}")),
