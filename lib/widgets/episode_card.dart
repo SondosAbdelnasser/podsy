@@ -33,6 +33,7 @@ class EpisodeCard extends StatelessWidget {
               ),
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
               if (episode.description != null) ...[
                 SizedBox(height: 8),
                 Text(
@@ -81,6 +82,8 @@ class EpisodeCard extends StatelessWidget {
 =======
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
               ...[
               const SizedBox(height: 8),
               Text(
@@ -99,6 +102,9 @@ class EpisodeCard extends StatelessWidget {
                   Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
                   const SizedBox(width: 4),
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -111,7 +117,10 @@ class EpisodeCard extends StatelessWidget {
                   ),
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
                   const SizedBox(width: 16),

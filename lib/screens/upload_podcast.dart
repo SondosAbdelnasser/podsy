@@ -317,6 +317,7 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                               ),
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                             ),
                             Text(
                               '(MP3, WAV, etc.)',
@@ -324,6 +325,8 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                                 color: Colors.grey[500],
                                 fontSize: 14,
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
                               const SizedBox(height: 8),
@@ -342,8 +345,11 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
               ),
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
               SizedBox(height: 32),
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
               const SizedBox(height: 16),
@@ -363,6 +369,9 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
 
               const SizedBox(height: 24),
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -371,6 +380,7 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
               ElevatedButton(
                 onPressed: _isLoading ? null : _uploadEpisode,
                 style: ElevatedButton.styleFrom(
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
                   backgroundColor: Theme.of(context).primaryColor,
@@ -392,6 +402,8 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
 =======
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: Theme.of(context).primaryColor,
                   foregroundColor: Colors.white,
@@ -407,6 +419,9 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                       )
                     : Text('Upload Episode'),
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes

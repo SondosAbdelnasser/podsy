@@ -58,6 +58,9 @@ dependencies:
   shared_preferences: ^2.2.2  # Added for local storage
   flutter_dotenv: ^5.1.0
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -90,9 +93,12 @@ flutter:
   assets:
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       - assets\animations\Animation - 1745259806692.json
       - .env
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
     - assets/animations/
@@ -105,6 +111,9 @@ flutter:
       windows:
         default_package: null
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
