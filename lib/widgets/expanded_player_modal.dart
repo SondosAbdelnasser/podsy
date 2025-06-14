@@ -5,6 +5,9 @@ import '../services/audio_player_service.dart';
 import '../models/episode.dart';
 import '../services/podcast_service.dart';
 import '../models/podcast_collection.dart';
+import '../services/like_service.dart';
+import '../services/share_service.dart';
+import '../widgets/like_button.dart';
 
 class ExpandedPlayerModal extends StatefulWidget {
   const ExpandedPlayerModal({Key? key}) : super(key: key);
@@ -16,12 +19,24 @@ class ExpandedPlayerModal extends StatefulWidget {
 class _ExpandedPlayerModalState extends State<ExpandedPlayerModal> {
   PodcastCollection? _collection;
   bool _loadingCollection = false;
+  final ShareService _shareService = ShareService();
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     Provider.of<AudioPlayerService>(context).addListener(_fetchCollection);
     _fetchCollection();
+    
+    final likeService = Provider.of<LikeService>(context, listen: false);
+    final currentEpisode = Provider.of<AudioPlayerService>(context, listen: false).currentEpisode;
+    if (currentEpisode != null && currentEpisode.id != null) {
+      likeService.checkIfLiked(currentEpisode.id!);
+    }
   }
 
   @override
@@ -69,6 +84,24 @@ class _ExpandedPlayerModalState extends State<ExpandedPlayerModal> {
     }
   }
 
+  Future<void> _shareEpisode(Episode episode) async {
+    try {
+      await _shareService.shareEpisode(
+        episodeId: episode.id!,
+        title: episode.title,
+        description: episode.description ?? '',
+        audioUrl: episode.audioUrl,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error sharing episode: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
@@ -84,6 +117,7 @@ class _ExpandedPlayerModalState extends State<ExpandedPlayerModal> {
   @override
   Widget build(BuildContext context) {
     final audioPlayerService = Provider.of<AudioPlayerService>(context);
+    final likeService = Provider.of<LikeService>(context);
     final currentEpisode = audioPlayerService.currentEpisode;
 
     if (!audioPlayerService.isInitialized || currentEpisode == null) {
@@ -110,6 +144,16 @@ class _ExpandedPlayerModalState extends State<ExpandedPlayerModal> {
           'Playing Podcast',
           style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          LikeButton(
+            isLiked: likeService.isLiked,
+            onPressed: () => likeService.toggleLike(currentEpisode.id!),
+          ),
+          IconButton(
+            icon: const Icon(Icons.share, color: Colors.deepPurple),
+            onPressed: () => _shareEpisode(currentEpisode),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -151,13 +195,13 @@ class _ExpandedPlayerModalState extends State<ExpandedPlayerModal> {
             const SizedBox(height: 32),
 
             // Seek Bar
-            StreamBuilder<Duration?>( 
+            StreamBuilder<Duration?>(
               stream: audioPlayerService.durationStream,
               builder: (context, snapshot) {
                 final duration = snapshot.data ?? Duration.zero;
                 return Column(
                   children: [
-                    Slider( 
+                    Slider(
                       min: 0.0,
                       max: duration.inMilliseconds.toDouble(),
                       value: currentPosition.inMilliseconds.toDouble().clamp(0.0, duration.inMilliseconds.toDouble()),
