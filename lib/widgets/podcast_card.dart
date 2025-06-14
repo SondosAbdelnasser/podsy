@@ -21,6 +21,7 @@ class PodcastCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
+<<<<<<< Updated upstream
       child: SizedBox(
         height: 220, // Reduced height for the entire card
         child: InkWell(
@@ -51,6 +52,27 @@ class PodcastCard extends StatelessWidget {
                               },
                             )
                           : Center(
+=======
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Podcast Cover Image
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: Container(
+                  color: Colors.grey[200],
+                  child: podcast.imageUrl.isNotEmpty
+                      ? Image.network(
+                          podcast.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+>>>>>>> Stashed changes
                               child: Icon(
                                 Icons.mic,
                                 size: 40,
@@ -60,6 +82,7 @@ class PodcastCard extends StatelessWidget {
                   ),
                 ),
               ),
+<<<<<<< Updated upstream
               // Podcast Info
               Expanded(
                 child: Padding(
@@ -80,6 +103,51 @@ class PodcastCard extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
+=======
+            ),
+            // Podcast Info
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    podcast.title,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    podcast.author,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.category,
+                        size: 12,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 2),
+                      Expanded(
+                        child: Text(
+                          podcast.category,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 11,
+>>>>>>> Stashed changes
                           ),
                           if (trailing != null) trailing!,
                           Icon(
@@ -133,7 +201,43 @@ class PodcastCard extends StatelessWidget {
                       ),
                     ],
                   ),
+<<<<<<< Updated upstream
                 ),
+=======
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.star,
+                        size: 12,
+                        color: Colors.amber,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        podcast.rating.toStringAsFixed(1),
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 11,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.headphones,
+                        size: 12,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${podcast.episodeCount}',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+>>>>>>> Stashed changes
               ),
             ],
           ),

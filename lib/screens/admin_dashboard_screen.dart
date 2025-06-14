@@ -153,6 +153,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< Updated upstream
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -221,6 +222,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       ),
           ],
         ),
+=======
+    return Scaffold(
+      appBar: AppBar(title: const Text("Admin Dashboard")),
+      body: ListView.builder(
+        itemCount: _users.length,
+        itemBuilder: (ctx, i) {
+          final user = _users[i];
+          return UserListItem(
+            email: user.email,
+            is_admin: user.isAdmin,
+            onPromote: () => _promoteToAdmin(user.id),
+          );
+        },
+>>>>>>> Stashed changes
       ),
     );
   }

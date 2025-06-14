@@ -189,10 +189,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
         title: Text(
           _user!.name,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -230,7 +230,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           children: [
                             Text(
                               _user!.name,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -259,7 +259,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           children: [
                             Text(
                               _followersCount.toString(),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -280,7 +280,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           children: [
                             Text(
                               _followingCount.toString(),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -304,14 +304,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       onPressed: _toggleFollow,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).primaryColor,
-                        padding: EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: Text(
                         _isFollowing ? 'Unfollow' : 'Follow',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -328,7 +328,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Collections',
                     style: TextStyle(
                       fontSize: 20,
@@ -357,7 +357,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         final episodes = _episodesByCollection[collection.id] ?? [];
                         return Card(
                           elevation: 2,
-                          margin: EdgeInsets.only(bottom: 12),
+                          margin: const EdgeInsets.only(bottom: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -367,7 +367,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               ListTile(
                                 title: Text(
                                   collection.title,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                   ),

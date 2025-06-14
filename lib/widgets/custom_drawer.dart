@@ -17,24 +17,24 @@ class CustomDrawer extends StatelessWidget {
           UserAccountsDrawerHeader(
             accountName: Text(userProvider.users.isNotEmpty ? userProvider.users[0].name : 'Loading...'),
             accountEmail: Text(userProvider.users.isNotEmpty ? userProvider.users[0].email : 'Loading...'), // 
-            currentAccountPicture: CircleAvatar(
+            currentAccountPicture: const CircleAvatar(
               backgroundColor: Colors.white,
               child: Icon(Icons.person, size: 50.0), // 
             ),
           ),
           ListTile(
-            title: Text('Profile'),
-            leading: Icon(Icons.person),
+            title: const Text('Profile'),
+            leading: const Icon(Icons.person),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ProfileScreen()),
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
               );
             },
           ),
           ListTile(
-            title: Text('Settings'),
-            leading: Icon(Icons.settings),
+            title: const Text('Settings'),
+            leading: const Icon(Icons.settings),
             onTap: () {
               Navigator.push(
                 context,
@@ -43,8 +43,8 @@ class CustomDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            title: Text('Logout'),
-            leading: Icon(Icons.exit_to_app),
+            title: const Text('Logout'),
+            leading: const Icon(Icons.exit_to_app),
             onTap: () {
               // Logout
             },

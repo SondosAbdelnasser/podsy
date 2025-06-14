@@ -72,12 +72,12 @@ class AudioPlayerService extends ChangeNotifier {
 
   Future<void> skipForward() async {
     final duration = _audioPlayer.duration ?? Duration.zero;
-    final newPosition = _currentPosition + Duration(seconds: 10);
+    final newPosition = _currentPosition + const Duration(seconds: 10);
     await _audioPlayer.seek(newPosition > duration ? duration : newPosition);
   }
 
   Future<void> skipBackward() async {
-    final newPosition = _currentPosition - Duration(seconds: 10);
+    final newPosition = _currentPosition - const Duration(seconds: 10);
     await _audioPlayer.seek(newPosition.isNegative ? Duration.zero : newPosition);
   }
 

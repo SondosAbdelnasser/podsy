@@ -54,7 +54,7 @@ class PodcastService {
         if (imageFile == null) throw Exception('No image file provided for mobile upload');
         await client.storage
             .from('podcast-files')
-            .upload(filePath, imageFile, fileOptions: FileOptions(
+            .upload(filePath, imageFile, fileOptions: const FileOptions(
               cacheControl: '3600',
               upsert: true
             ));

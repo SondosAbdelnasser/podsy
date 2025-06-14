@@ -1,5 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+<<<<<<< Updated upstream
 import 'package:firebase_auth/firebase_auth.dart';
+=======
+import 'package:flutter/foundation.dart';
+>>>>>>> Stashed changes
 
 class SupabaseConfig {
   static const String supabaseUrl = 'https://baxcgruzuycxpllcpqqw.supabase.co';
@@ -12,16 +16,21 @@ class SupabaseConfig {
       await Supabase.initialize(
         url: supabaseUrl,
         anonKey: supabaseAnonKey,
-        debug: true, // Enable debug mode to get more detailed error messages
+        debug: kDebugMode, // Only enable debug mode in debug builds
       );
 
       // Verify the connection by making a simple query
       final client = Supabase.instance.client;
-      await client.from('podcast_collections').select().limit(1);
+      try {
+        await client.from('podcast_collections').select().limit(1);
+      } catch (e) {
+        debugPrint('Warning: podcast_collections table might not exist yet: $e');
+        // Continue initialization even if the table doesn't exist
+      }
       
-      print('Supabase initialized successfully');
+      debugPrint('Supabase initialized successfully');
     } catch (e) {
-      print('Failed to initialize Supabase: ${e.toString()}');
+      debugPrint('Failed to initialize Supabase: $e');
       rethrow;
     }
   }

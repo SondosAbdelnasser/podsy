@@ -15,22 +15,23 @@ class EpisodeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 2,
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 episode.title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
+<<<<<<< Updated upstream
               if (episode.description != null) ...[
                 SizedBox(height: 8),
                 Text(
@@ -76,6 +77,25 @@ class EpisodeCard extends StatelessWidget {
                     color: Colors.grey[600],
                   ),
                   SizedBox(width: 4),
+=======
+              ...[
+              const SizedBox(height: 8),
+              Text(
+                episode.description!,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+                  const SizedBox(width: 4),
+>>>>>>> Stashed changes
                   Text(
                     _formatDuration(episode.duration),
                     style: TextStyle(
@@ -83,6 +103,33 @@ class EpisodeCard extends StatelessWidget {
                       fontSize: 14,
                     ),
                   ),
+<<<<<<< Updated upstream
+=======
+                  const SizedBox(width: 16),
+                  Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                  const SizedBox(width: 4),
+                  Text(
+                    _formatDate(episode.publishedAt ?? episode.createdAt),
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.person, size: 16, color: Colors.grey[600]),
+                  const SizedBox(width: 4),
+                  Text(
+                    ownerName,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+>>>>>>> Stashed changes
                 ],
               ),
             ],

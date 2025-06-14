@@ -27,7 +27,7 @@ class AuthWrapper extends StatelessWidget {
           // User is not authenticated, redirect to login
           WidgetsBinding.instance.addPostFrameCallback((_) {
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => LoginScreen()),
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
               (route) => false,
             );
           });

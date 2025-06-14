@@ -65,7 +65,7 @@ class DeepLinkService {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => Center(
+        builder: (context) => const Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -86,7 +86,7 @@ class DeepLinkService {
       } else {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Could not find the episode'),
             backgroundColor: Colors.red,
           ),

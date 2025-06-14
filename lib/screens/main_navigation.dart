@@ -16,10 +16,10 @@ class _MainNavigationState extends State<MainNavigation> {
   final CategoryDetectionService _categoryService = CategoryDetectionService();
   
   final List<Widget> _screens = [
-    Home(),
-    SearchScreen(),
-    LikesScreen(),
-    UsersListPage(),
+    const Home(),
+    const SearchScreen(),
+    const LikesScreen(),
+    const UsersListPage(),
   ];
 
   Future<void> _testWitAiToken() async {
@@ -48,7 +48,7 @@ class _MainNavigationState extends State<MainNavigation> {
               color: Colors.grey.withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 10,
-              offset: Offset(0, -1),
+              offset: const Offset(0, -1),
             ),
           ],
         ),
@@ -63,7 +63,7 @@ class _MainNavigationState extends State<MainNavigation> {
           selectedItemColor: Theme.of(context).primaryColor,
           unselectedItemColor: Colors.grey[400],
           type: BottomNavigationBarType.fixed,
-          items: [
+          items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
               activeIcon: Icon(Icons.home),

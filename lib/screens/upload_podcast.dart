@@ -64,11 +64,54 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
     }
   }
 
+<<<<<<< Updated upstream
+=======
+  Future<void> _transcribeAudio() async {
+    if (_audioFile == null && _audioBytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select an audio file first'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // First upload the audio file to get a URL
+      final audioUrl = await _uploadAudioFile();
+      setState(() => _audioUrl = audioUrl);
+
+      // Navigate to transcription screen
+      final transcript = await Navigator.push<String>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TranscriptionScreen(
+            audioUrl: audioUrl,
+            episodeId: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+          ),
+        ),
+      );
+
+      if (transcript != null && _descriptionController.text.isEmpty) {
+        _descriptionController.text = 'Transcript:\n$transcript';
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+>>>>>>> Stashed changes
   Future<void> _uploadEpisode() async {
     if (!_formKey.currentState!.validate()) return;
     if (_audioFile == null && _audioBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Please select an audio file'),
           backgroundColor: Colors.red,
         ),
@@ -98,7 +141,7 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Episode uploaded successfully!'),
           backgroundColor: Colors.green,
         ),
@@ -131,17 +174,17 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Upload Episode',
           style: TextStyle(color: Colors.black),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
@@ -150,12 +193,12 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
               // Title Field
               TextFormField(
                 controller: _titleController,
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
                 decoration: InputDecoration(
                   labelText: 'Episode Title',
-                  labelStyle: TextStyle(color: Colors.black87),
+                  labelStyle: const TextStyle(color: Colors.black87),
                   hintText: 'Enter your episode title',
-                  hintStyle: TextStyle(color: Colors.grey),
+                  hintStyle: const TextStyle(color: Colors.grey),
                   filled: true,
                   fillColor: Colors.grey[100],
                   border: OutlineInputBorder(
@@ -178,17 +221,17 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                   return null;
                 },
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               // Description Field
               TextFormField(
                 controller: _descriptionController,
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
                 decoration: InputDecoration(
                   labelText: 'Description',
-                  labelStyle: TextStyle(color: Colors.black87),
+                  labelStyle: const TextStyle(color: Colors.black87),
                   hintText: 'Enter your episode description',
-                  hintStyle: TextStyle(color: Colors.grey),
+                  hintStyle: const TextStyle(color: Colors.grey),
                   filled: true,
                   fillColor: Colors.grey[100],
                   border: OutlineInputBorder(
@@ -212,10 +255,10 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                   return null;
                 },
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               // Audio Upload Section
-              Text(
+              const Text(
                 'Audio File',
                 style: TextStyle(
                   color: Colors.black87,
@@ -223,7 +266,7 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               GestureDetector(
                 onTap: _pickAudio,
                 child: Container(
@@ -246,10 +289,10 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                                 size: 32,
                                 color: Theme.of(context).primaryColor,
                               ),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Text(
                                 _audioFileName ?? 'Audio file selected',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.black87,
                                   fontSize: 14,
                                 ),
@@ -272,24 +315,54 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                                 color: Colors.grey[600],
                                 fontSize: 16,
                               ),
+<<<<<<< Updated upstream
                             ),
                             Text(
                               '(MP3, WAV, etc.)',
                               style: TextStyle(
                                 color: Colors.grey[500],
                                 fontSize: 14,
+=======
+                              const SizedBox(height: 8),
+                              Text(
+                                'Tap to select audio file',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+>>>>>>> Stashed changes
                               ),
                             ),
                           ],
                         ),
                 ),
               ),
+<<<<<<< Updated upstream
               SizedBox(height: 32),
+=======
+              const SizedBox(height: 16),
+
+              // Transcribe Button
+              if (_audioFile != null || _audioBytes != null)
+                ElevatedButton.icon(
+                  onPressed: _transcribeAudio,
+                  icon: const Icon(Icons.transcribe),
+                  label: const Text('Transcribe Audio'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+
+              const SizedBox(height: 24),
+>>>>>>> Stashed changes
 
               // Upload Button
               ElevatedButton(
                 onPressed: _isLoading ? null : _uploadEpisode,
                 style: ElevatedButton.styleFrom(
+<<<<<<< Updated upstream
                   backgroundColor: Theme.of(context).primaryColor,
                   padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -306,6 +379,22 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+=======
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: _isLoading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Text('Upload Episode'),
+>>>>>>> Stashed changes
               ),
             ],
           ),

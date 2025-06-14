@@ -60,9 +60,19 @@ class _PlayScreenState extends State<PlayScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.episode.title),
+<<<<<<< Updated upstream
         // backgroundColor: Colors.white,
         // foregroundColor: Colors.black,
         // elevation: 0,
+=======
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.transcribe),
+            onPressed: _transcribeEpisode,
+            tooltip: 'Transcribe Episode',
+          ),
+        ],
+>>>>>>> Stashed changes
       ),
      // backgroundColor: Colors.white,
       body: Padding(

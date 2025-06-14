@@ -15,7 +15,7 @@ class AppTheme {
         foregroundColor: textColor,
         elevation: 0,
       ),
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: primaryColor,
         secondary: primaryColor,
         surface: backgroundColor,

@@ -14,7 +14,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void initState() {
     super.initState();
     // Fetch interests from the provider when the screen is loaded
-    Provider.of<InterestProvider>(context, listen: false).fetchInterests();
+   // Provider.of<InterestProvider>(context, listen: false).fetchInterests();
   }
 
   void _toggleSelection(String id) {
@@ -36,17 +36,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          title: Text("Choose Your Interests"),
+          title: const Text("Choose Your Interests"),
           backgroundColor: Colors.deepPurple,
         ),
-        body: Center(child: CircularProgressIndicator()),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text("Choose Your Interests"),
+        title: const Text("Choose Your Interests"),
         backgroundColor: Colors.deepPurple,
       ),
       body: Padding(
@@ -75,7 +75,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             Icons.star, // Just an example icon, replace with your own
                             color: _selectedIds.contains(interest.id) ? Colors.white : Colors.grey,
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
                             interest.name,
                             style: TextStyle(

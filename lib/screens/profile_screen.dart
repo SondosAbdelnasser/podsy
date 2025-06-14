@@ -273,8 +273,8 @@ class PodcastCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Color(0xFFF3E5F5), // Light purple color
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: const Color(0xFFF3E5F5), // Light purple color
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -284,7 +284,7 @@ class PodcastCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -295,18 +295,18 @@ class PodcastCard extends StatelessWidget {
                     color: Theme.of(context).primaryColor,
                     size: 24,
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       podcast.title,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.black87,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                  Icon(
+                  const Icon(
                     Icons.chevron_right,
                     color: Colors.black54,
                   ),
@@ -315,10 +315,10 @@ class PodcastCard extends StatelessWidget {
               if (podcast.description != null &&
                   podcast.description!.isNotEmpty)
                 Padding(
-                  padding: EdgeInsets.only(top: 8, left: 36),
+                  padding: const EdgeInsets.only(top: 8, left: 36),
                   child: Text(
                     podcast.description!,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black87,
                       fontSize: 14,
                     ),
@@ -327,10 +327,10 @@ class PodcastCard extends StatelessWidget {
                   ),
                 ),
               Padding(
-                padding: EdgeInsets.only(top: 8, left: 36),
+                padding: const EdgeInsets.only(top: 8, left: 36),
                 child: Text(
                   'Created ${_formatDate(podcast.createdAt)}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.black54,
                     fontSize: 12,
                   ),

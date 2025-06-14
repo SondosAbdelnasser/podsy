@@ -57,7 +57,7 @@ class _AuthFormState extends State<AuthForm> {
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Enter a valid email to reset password.")),
+        const SnackBar(content: Text("Enter a valid email to reset password.")),
       );
       return;
     }
@@ -66,7 +66,7 @@ class _AuthFormState extends State<AuthForm> {
       await Provider.of<AuthProvider>(context, listen: false)
           .resetPassword(email);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Password reset email sent.")),
+        const SnackBar(content: Text("Password reset email sent.")),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,7 +95,7 @@ class _AuthFormState extends State<AuthForm> {
 
   @override
   Widget build(BuildContext context) {
-    final themeColor = Color(0xFF6A1B9A);
+    const themeColor = Color(0xFF6A1B9A);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -117,7 +117,7 @@ class _AuthFormState extends State<AuthForm> {
                           letterSpacing: 2,
                         ),
                       ),
-                      SizedBox(height: 32),
+                      const SizedBox(height: 32),
                       Form(
                         key: _formKey,
                         child: Column(
@@ -141,7 +141,7 @@ class _AuthFormState extends State<AuthForm> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              style: TextStyle(color: Colors.black87),
+                              style: const TextStyle(color: Colors.black87),
                               keyboardType: TextInputType.emailAddress,
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
@@ -153,7 +153,7 @@ class _AuthFormState extends State<AuthForm> {
                                 return null;
                               },
                             ),
-                            SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             TextFormField(
                               controller: _passwordController,
                               decoration: InputDecoration(
@@ -173,7 +173,7 @@ class _AuthFormState extends State<AuthForm> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              style: TextStyle(color: Colors.black87),
+                              style: const TextStyle(color: Colors.black87),
                               obscureText: true,
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
@@ -185,7 +185,7 @@ class _AuthFormState extends State<AuthForm> {
                                 return null;
                               },
                             ),
-                            SizedBox(height: 24),
+                            const SizedBox(height: 24),
                             ElevatedButton(
                               onPressed: _submit,
                               child: Text(
@@ -193,13 +193,20 @@ class _AuthFormState extends State<AuthForm> {
                                 style: TextStyle(fontSize: 18),
                               ),
                               style: ElevatedButton.styleFrom(
-                                minimumSize: Size(double.infinity, 50),
+                                minimumSize: const Size(double.infinity, 50),
                                 backgroundColor: themeColor,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
+<<<<<<< Updated upstream
+=======
+                              child: Text(
+                                _isLogin ? "Sign In" : "Sign Up",
+                                style: const TextStyle(fontSize: 18),
+                              ),
+>>>>>>> Stashed changes
                             ),
                             TextButton(
                               onPressed: () => setState(() => _isLogin = !_isLogin),
@@ -215,15 +222,15 @@ class _AuthFormState extends State<AuthForm> {
                                 onPressed: _resetPassword,
                                 child: Text("Forgot Password?", style: TextStyle(color: themeColor)),
                               ),
-                            SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             Divider(color: Colors.grey[300]),
-                            SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             ElevatedButton.icon(
                               onPressed: _signInWithGoogle,
-                              icon: Icon(Icons.g_mobiledata, color: Colors.black87),
-                              label: Text("Sign in with Google", style: TextStyle(color: Colors.black87)),
+                              icon: const Icon(Icons.g_mobiledata, color: Colors.black87),
+                              label: const Text("Sign in with Google", style: TextStyle(color: Colors.black87)),
                               style: ElevatedButton.styleFrom(
-                                minimumSize: Size(double.infinity, 50),
+                                minimumSize: const Size(double.infinity, 50),
                                 backgroundColor: Colors.grey[100],
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),

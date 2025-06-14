@@ -3,6 +3,7 @@ import 'package:podsy/screens/onboarding_screen.dart';
 import 'package:podsy/screens/upload_podcast.dart';
 import 'package:podsy/widgets/auth_form.dart';
 import 'package:provider/provider.dart';
+<<<<<<< Updated upstream
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
@@ -10,6 +11,18 @@ import 'providers/auth_provider.dart' as local_auth;
 import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';   
+=======
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'firebase_options.dart';
+import 'providers/auth_provider.dart';
+import 'providers/interest_provider.dart';
+import 'services/podcast_service.dart';
+import 'services/embedding_service.dart';
+import 'utils/supabase_config.dart';
+import 'widgets/auth_form.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/login_screen.dart';
+>>>>>>> Stashed changes
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/create_podcast_screen.dart';
 import 'screens/user_podcasts_screen.dart';
@@ -29,6 +42,7 @@ import 'models/podcast.dart';
 import 'screens/podcast_details_screen.dart';
 
 void main() async {
+<<<<<<< Updated upstream
   WidgetsFlutterBinding.ensureInitialized();
   
   print('=== Loading .env file ===');
@@ -110,6 +124,75 @@ class _MyAppState extends State<MyApp> {
               );
             },
             '/adminDashboard': (context) => AuthWrapper(child: AdminDashboardScreen()),
+=======
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    // Load environment variables
+    await dotenv.load(fileName: ".env");
+
+    // Initialize Firebase
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    // Initialize Supabase using the config from supabase_config.dart
+    await SupabaseConfig.initialize();
+
+    runApp(const MyApp());
+  } catch (e) {
+    debugPrint('Error during initialization: $e');
+    // Show error screen or handle the error appropriately
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Text('Failed to initialize app: $e'),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => InterestProvider()),
+        Provider<EmbeddingService>(
+          create: (_) => EmbeddingService(
+            apiKey: dotenv.env['HUGGING_FACE_API_KEY'] ?? '',
+            provider: EmbeddingProvider.huggingFace,
+          ),
+        ),
+        Provider<PodcastService>(
+          create: (context) => PodcastService(
+            client: SupabaseConfig.client,
+            embeddingService: context.read<EmbeddingService>(),
+          ),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Podsy',
+        debugShowCheckedModeBanner: false,
+        home: const AuthForm(),
+        routes: {
+          //'/onboarding': (context) => const OnboardingScreen(),
+          '/home': (context) => const MainNavigation(),
+          '/login': (context) => const LoginScreen(),
+          '/adminDashboard': (context) => const AdminDashboardScreen(),
+          '/createPodcast': (context) => const CreatePodcastScreen(),
+          '/myPodcasts': (context) => const UserPodcastsScreen(),
+          '/profile': (context) => const ProfileScreen(),
+          '/episode': (context) {
+            final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+            return PlayScreen(episode: args['episode']);
+>>>>>>> Stashed changes
           },
           // onGenerateRoute: (settings) {
           //   if (settings.name == '/podcast-details') {

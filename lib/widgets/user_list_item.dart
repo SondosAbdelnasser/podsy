@@ -18,6 +18,7 @@ class UserListItem extends StatelessWidget {
     return ListTile(
       title: Text(email),
       subtitle: Text("Role: ${is_admin ? 'Admin' : 'User'}"),
+<<<<<<< Updated upstream
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -36,6 +37,14 @@ class UserListItem extends StatelessWidget {
             ),
         ],
       ),
+=======
+      trailing: !is_admin
+          ? ElevatedButton(
+              onPressed: onPromote,
+              child: const Text("Promote to Admin"),
+            )
+          : null,
+>>>>>>> Stashed changes
     );
   }
 }

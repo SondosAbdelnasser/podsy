@@ -22,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen> {
   final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
   await authProvider.tryAutoLogin(); // 🔥 load user data
-  await Future.delayed(Duration(seconds: 3)); // Simulate loading
+  await Future.delayed(const Duration(seconds: 3)); // Simulate loading
 
   if (authProvider.isLoggedIn) {
     if (authProvider.is_admin) {

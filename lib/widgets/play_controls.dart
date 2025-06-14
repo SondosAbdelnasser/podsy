@@ -21,7 +21,7 @@ class PlayControls extends StatelessWidget {
       children: [
         // Play / Pause Button
         if (isLoading)
-          CircularProgressIndicator()
+          const CircularProgressIndicator()
         else
           IconButton(
             iconSize: 60,
@@ -37,11 +37,11 @@ class PlayControls extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             IconButton(
-              icon: Icon(Icons.replay_10),
+              icon: const Icon(Icons.replay_10),
               onPressed: () => onSkipBackwardPressed(),
             ),
             IconButton(
-              icon: Icon(Icons.forward_10),
+              icon: const Icon(Icons.forward_10),
               onPressed: () => onSkipForwardPressed(),
             ),
           ],

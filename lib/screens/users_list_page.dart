@@ -47,7 +47,7 @@ class _UsersListPageState extends State<UsersListPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text(
+        title: const Text(
           'All Users',
           style: TextStyle(
             color: Colors.black,
@@ -55,26 +55,26 @@ class _UsersListPageState extends State<UsersListPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _loadUsers,
               child: ListView.builder(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 itemCount: _users.length,
                 itemBuilder: (context, index) {
                   final user = _users[index];
                   return Card(
                     elevation: 2,
-                    margin: EdgeInsets.only(bottom: 12),
-                    color: Color(0xFFF3E5F5),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    color: const Color(0xFFF3E5F5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ListTile(
-                      contentPadding: EdgeInsets.all(12),
+                      contentPadding: const EdgeInsets.all(12),
                       leading: CircleAvatar(
                         radius: 24,
                         backgroundColor: Colors.white,
@@ -89,7 +89,7 @@ class _UsersListPageState extends State<UsersListPage> {
                       ),
                       title: Text(
                         user.name,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                           color: Colors.black87,
@@ -97,7 +97,7 @@ class _UsersListPageState extends State<UsersListPage> {
                       ),
                       subtitle: Text(
                         user.username ?? user.email,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.black54,
                           fontSize: 14,
                         ),

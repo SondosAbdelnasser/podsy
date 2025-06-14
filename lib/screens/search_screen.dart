@@ -197,7 +197,7 @@ class _SearchScreenState extends State<SearchScreen> {
             border: InputBorder.none,
             icon: Icon(Icons.search, color: Colors.grey[400]),
           ),
-          style: TextStyle(color: Colors.black, fontSize: 16),
+          style: const TextStyle(color: Colors.black, fontSize: 16),
         ),
       ),
       body: Column(
@@ -213,7 +213,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       size: 64,
                       color: Colors.grey[300],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Text(
                       'Search for podcasts and episodes',
                       style: TextStyle(
@@ -226,7 +226,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             )
           else if (isLoading)
-            Expanded(
+            const Expanded(
               child: Center(
                 child: CircularProgressIndicator(),
               ),
@@ -242,7 +242,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       size: 64,
                       color: Colors.grey[300],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Text(
                       'No results found',
                       style: TextStyle(
@@ -256,6 +256,7 @@ class _SearchScreenState extends State<SearchScreen> {
             )
           else
             Expanded(
+<<<<<<< Updated upstream
               child: SingleChildScrollView(
                 child: Padding(
                   padding: EdgeInsets.all(16),
@@ -275,6 +276,24 @@ class _SearchScreenState extends State<SearchScreen> {
                     )).toList(),
                   ),
                 ),
+=======
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: searchResults.length,
+                itemBuilder: (context, index) {
+                  final result = searchResults[index];
+                  return widgets.PodcastCard(
+                    podcast: result,
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/podcast-details',
+                        arguments: result,
+                      );
+                    },
+                  );
+                },
+>>>>>>> Stashed changes
               ),
             ),
         ],
