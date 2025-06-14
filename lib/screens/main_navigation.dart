@@ -5,6 +5,9 @@ import 'podcast_home.dart';
 import 'search_screen.dart';
 import 'likes_screen.dart';
 import 'users_list_page.dart';
+import '../widgets/mini_player_bar.dart';
+import '../widgets/expanded_player_modal.dart';
+import '../services/audio_player_service.dart';
 
 class MainNavigation extends StatefulWidget {
   @override
@@ -32,14 +35,39 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
+  void _showExpandedPlayer() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => const ExpandedPlayerModal(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final audioPlayerService = Provider.of<AudioPlayerService>(context);
+
     return Scaffold(
-      body: _screens[_currentIndex],
-      floatingActionButton: FloatingActionButton(
-        onPressed: _testWitAiToken,
-        child: Icon(Icons.api),
-        tooltip: 'Test Wit.ai Token',
+      body: Stack(
+        children: [
+          // Main content of the current screen
+          _screens[_currentIndex],
+
+          // Mini Player Bar
+          if (audioPlayerService.currentEpisode != null) // Only show if an episode is loaded
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  MiniPlayerBar(onExpand: _showExpandedPlayer),
+                  // This SizedBox is to make space for the bottom navigation bar
+                  // It should have the same height as your BottomNavigationBar
+                  SizedBox(height: kBottomNavigationBarHeight), 
+                ],
+              ),
+            ),
+        ],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

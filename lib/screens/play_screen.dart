@@ -57,14 +57,22 @@ class _PlayScreenState extends State<PlayScreen> {
     final audioPlayerService = Provider.of<AudioPlayerService>(context);
     final likeService = Provider.of<LikeService>(context);
 
+    if (!audioPlayerService.isInitialized) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.episode.title),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.episode.title),
-        // backgroundColor: Colors.white,
-        // foregroundColor: Colors.black,
-        // elevation: 0,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.deepPurple,
       ),
-     // backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -85,7 +93,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 ),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(Icons.share),
+                  icon: const Icon(Icons.share, color: Colors.deepPurple),
                   onPressed: _shareEpisode,
                 ),
               ],
@@ -100,7 +108,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 if (audioPlayerService.isPlaying) {
                   audioPlayerService.pauseAudio();
                 } else {
-                  audioPlayerService.playAudio(widget.episode.audioUrl);
+                  audioPlayerService.playAudio(widget.episode.audioUrl, episode: widget.episode);
                 }
               },
               onSkipForwardPressed: () {
