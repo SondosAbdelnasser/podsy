@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/podcast_service.dart';
-import '../models/podcast.dart';
+import '../models/podcast.dart' as itunes;
 import '../models/episode.dart' as episode_model;
 import '../widgets/podcast_card.dart' as widgets;
 import '../widgets/episode_tile.dart';
@@ -10,6 +10,7 @@ import 'profile_screen.dart';
 import 'podcast_details_screen.dart';
 import 'users_list_page.dart';
 import '../services/audio_player_service.dart';
+import '../models/episode.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -20,9 +21,12 @@ class Home extends StatefulWidget {
 
 class _HomeScreenState extends State<Home> {
   final PodcastService _podcastService = PodcastService();
-  List<Podcast> _podcasts = [];
+  List<itunes.Podcast> _podcasts = [];
   bool _isLoading = true;
   String? _error;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -37,7 +41,7 @@ class _HomeScreenState extends State<Home> {
     });
 
     try {
-      final podcasts = await _podcastService.getAllPodcasts();
+      final podcasts = await _podcastService.getTopPodcasts();
       setState(() {
         _podcasts = podcasts;
         _isLoading = false;
@@ -46,6 +50,35 @@ class _HomeScreenState extends State<Home> {
       setState(() {
         _error = e.toString();
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _searchPodcasts(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _isSearching = false;
+        _searchQuery = '';
+      });
+      await _loadPodcasts();
+      return;
+    }
+
+    setState(() {
+      _isSearching = true;
+      _searchQuery = query;
+    });
+
+    try {
+      final results = await _podcastService.searchPodcasts(query);
+      setState(() {
+        _podcasts = results;
+        _isSearching = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isSearching = false;
       });
     }
   }
@@ -278,7 +311,7 @@ class _HomeScreenState extends State<Home> {
                                 ),
                               ),
                             ),
-                            FutureBuilder<List<Podcast>>(
+                            FutureBuilder<List<itunes.Podcast>>(
                               future: _podcastService.getFollowedUsersEpisodes(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -389,7 +422,7 @@ class _HomeScreenState extends State<Home> {
                                 ),
                               ),
                             ),
-                            FutureBuilder<List<Podcast>>(
+                            FutureBuilder<List<itunes.Podcast>>(
                               future: _podcastService.getFollowedUsersEpisodes(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -487,7 +520,17 @@ class _HomeScreenState extends State<Home> {
                                           color: Theme.of(context).primaryColor,
                                           onPressed: () {
                                             final audioPlayerService = Provider.of<AudioPlayerService>(context, listen: false);
-                                            audioPlayerService.playAudio(episode.audioUrl);
+                                            // Convert iTunes Episode to our database Episode format
+                                            final dbEpisode = Episode(
+                                              collectionId: podcast.id,
+                                              title: episode.title,
+                                              description: episode.description,
+                                              audioUrl: episode.audioUrl,
+                                              duration: Duration(milliseconds: episode.duration),
+                                              createdAt: DateTime.now(),
+                                              updatedAt: DateTime.now(),
+                                            );
+                                            audioPlayerService.playAudio(episode.audioUrl, episode: dbEpisode);
                                           },
                                         ),
                                         onTap: () {

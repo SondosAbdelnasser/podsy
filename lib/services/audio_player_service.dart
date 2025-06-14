@@ -3,6 +3,8 @@ import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+import 'dart:convert';
+import '../models/episode.dart';
 
 class AudioPlayerService extends ChangeNotifier {
   static final AudioPlayerService _instance = AudioPlayerService._internal();
@@ -17,6 +19,7 @@ class AudioPlayerService extends ChangeNotifier {
   bool _isLoading = false;
   Duration _currentPosition = Duration.zero;
   String? _currentAudioUrl;
+  Episode? _currentEpisode;
   double _playbackSpeed = 1.0;
   bool _isInitialized = false;
   Timer? _positionUpdateTimer;
@@ -77,6 +80,11 @@ class AudioPlayerService extends ChangeNotifier {
       final savedUrl = prefs.getString('last_played_url');
       final savedPosition = prefs.getInt('last_position');
       final savedSpeed = prefs.getDouble('playback_speed');
+      // Retrieve episode details if saved
+      final savedEpisodeJson = prefs.getString('last_played_episode');
+      if (savedEpisodeJson != null) {
+        _currentEpisode = Episode.fromMap(jsonDecode(savedEpisodeJson), jsonDecode(savedEpisodeJson)['id']);
+      }
 
       if (savedUrl != null) {
         _currentAudioUrl = savedUrl;
@@ -100,6 +108,10 @@ class AudioPlayerService extends ChangeNotifier {
         await prefs.setString('last_played_url', _currentAudioUrl!);
         await prefs.setInt('last_position', _currentPosition.inMilliseconds);
         await prefs.setDouble('playback_speed', _playbackSpeed);
+        // Save episode details
+        if (_currentEpisode != null && _currentEpisode!.id != null) {
+          await prefs.setString('last_played_episode', jsonEncode(_currentEpisode!.toMap()));
+        }
       }
     } catch (e) {
       print("Error saving state: $e");
@@ -110,10 +122,12 @@ class AudioPlayerService extends ChangeNotifier {
   bool get isLoading => _isLoading;
   Duration get currentPosition => _currentPosition;
   String? get currentAudioUrl => _currentAudioUrl;
+  Episode? get currentEpisode => _currentEpisode;
   double get playbackSpeed => _playbackSpeed;
   bool get isInitialized => _isInitialized;
+  Stream<Duration?> get durationStream => _audioPlayer.durationStream;
 
-  Future<void> playAudio(String url) async {
+  Future<void> playAudio(String url, {Episode? episode}) async {
     print('[AudioPlayerService] playAudio called. isInitialized=$_isInitialized');
     if (!_isInitialized) {
       print('[AudioPlayerService] Not initialized. playAudio ignored.');
@@ -123,6 +137,8 @@ class AudioPlayerService extends ChangeNotifier {
       // If the same audio is already loaded, just resume playback
       if (_currentAudioUrl == url) {
         await _audioPlayer.play();
+        _currentEpisode = episode ?? _currentEpisode;
+        notifyListeners();
         return;
       }
       _isLoading = true;
@@ -132,6 +148,7 @@ class AudioPlayerService extends ChangeNotifier {
       // Set the new audio source
       await _audioPlayer.setUrl(url);
       _currentAudioUrl = url;
+      _currentEpisode = episode;
       // Start playback
       await _audioPlayer.play();
       _isLoading = false;
@@ -169,6 +186,7 @@ class AudioPlayerService extends ChangeNotifier {
     try {
       await _audioPlayer.stop();
       _currentAudioUrl = null;
+      _currentEpisode = null;
       await _saveState();
     } catch (e) {
       print('[AudioPlayerService] Error stopping audio: $e');

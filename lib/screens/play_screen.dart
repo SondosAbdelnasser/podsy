@@ -109,7 +109,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 if (audioPlayerService.isPlaying) {
                   audioPlayerService.pauseAudio();
                 } else {
-                  audioPlayerService.playAudio(widget.episode.audioUrl);
+                  audioPlayerService.playAudio(widget.episode.audioUrl, episode: widget.episode);
                 }
               },
               onSkipForwardPressed: () {
