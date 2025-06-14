@@ -19,31 +19,32 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAuth() async {
-  final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-  await authProvider.tryAutoLogin(); // 🔥 load user data
-  await Future.delayed(Duration(seconds: 3)); // Simulate loading
-
-  if (authProvider.isLoggedIn) {
-    if (authProvider.is_admin) {
-      Navigator.pushReplacementNamed(context, '/adminDashboard');
-    } else {
-      Navigator.pushReplacementNamed(context, '/home');
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // Wait for auth provider to initialize
+    while (!authProvider.isInitialized) {
+      await Future.delayed(Duration(milliseconds: 100));
     }
-  } else {
-   Future.microtask(() {
-      Navigator.pushReplacementNamed(context, 'login');
+
+    // Use Future.microtask to ensure navigation happens after the build is complete
+    Future.microtask(() {
+      if (authProvider.isLoggedIn) {
+        if (authProvider.is_admin) {
+          Navigator.pushReplacementNamed(context, '/adminDashboard');
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      } else {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     });
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Lottie.asset('assets/animations/Animation - 1745259806692.json', width: 150) 
-        
+        child: Lottie.asset('assets/animations/Animation - 1745259806692.json', width: 150)
       ),
     );
   }

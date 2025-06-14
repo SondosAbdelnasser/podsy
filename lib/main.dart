@@ -4,6 +4,7 @@ import 'package:podsy/screens/upload_podcast.dart';
 import 'package:podsy/widgets/auth_form.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'providers/auth_provider.dart' as local_auth; 
@@ -48,10 +49,10 @@ void main() async {
   // Initialize Supabase for database
   await SupabaseConfig.initialize();
   
-  runApp(    MultiProvider(
+  runApp(MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => local_auth.AuthProvider()),
-        ChangeNotifierProvider(create: (context) => AudioPlayerService()),
+        ChangeNotifierProvider.value(value: AudioPlayerService()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(
           create: (context) {
@@ -94,7 +95,7 @@ class _MyAppState extends State<MyApp> {
           title: 'Podsy',
           debugShowCheckedModeBanner: false,
           theme: themeProvider.isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme,
-          home: AuthForm(),
+          home: SplashScreen(),
           routes: {
             '/onboarding': (context) => OnboardingScreen(),
             '/home': (context) => AuthWrapper(child: MainNavigation()),
@@ -109,7 +110,6 @@ class _MyAppState extends State<MyApp> {
                 child: PlayScreen(episode: args['episode']),
               );
             },
-            '/adminDashboard': (context) => AuthWrapper(child: AdminDashboardScreen()),
           },
           // onGenerateRoute: (settings) {
           //   if (settings.name == '/podcast-details') {

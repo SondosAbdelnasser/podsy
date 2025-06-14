@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../models/episode.dart';
 import '../widgets/episode_card.dart';
+import '../services/audio_player_service.dart';
+import '../services/podcast_service.dart';
+import '../models/podcast.dart' as itunes;
+import 'play_screen.dart';
 
 class LikesScreen extends StatefulWidget {
   @override
@@ -15,6 +19,9 @@ class _LikesScreenState extends State<LikesScreen> {
   List<Episode> likedEpisodes = [];
   bool isLoading = true;
   bool _mounted = true;
+  final PodcastService _podcastService = PodcastService();
+  List<itunes.Podcast> _likedPodcasts = [];
+  String? _error;
 
   @override
   void initState() {
@@ -118,108 +125,121 @@ class _LikesScreenState extends State<LikesScreen> {
         ),
         iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: RefreshIndicator(
-        onRefresh: loadLikedEpisodes,
-        child: isLoading
-            ? Center(child: CircularProgressIndicator())
-            : likedEpisodes.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.favorite_border,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'No liked episodes yet',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(child: Text('Error: $_error'))
+              : likedEpisodes.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.favorite_border,
+                            size: 64,
+                            color: Colors.grey[400],
                           ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Like some episodes to see them here',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: EdgeInsets.all(16),
-                    itemCount: likedEpisodes.length,
-                    itemBuilder: (context, index) {
-                      final episode = likedEpisodes[index];
-                      return Card(
-                        margin: EdgeInsets.only(bottom: 12),
-                        color: Color(0xFFF3E5F5), // Light purple color
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.all(12),
-                          leading: CircleAvatar(
-                            radius: 24,
-                            backgroundColor: Colors.white,
-                            child: Text(
-                              episode.title[0].toUpperCase(),
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ),
-                          title: Text(
-                            episode.title,
+                          SizedBox(height: 16),
+                          Text(
+                            'No liked episodes yet',
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.black87,
+                              color: Colors.black,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (episode.description != null && episode.description!.isNotEmpty)
-                                Text(
-                                  episode.description!,
+                          SizedBox(height: 8),
+                          Text(
+                            'Like some episodes to see them here',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: loadLikedEpisodes,
+                      child: ListView.builder(
+                        padding: EdgeInsets.all(16),
+                        itemCount: likedEpisodes.length,
+                        itemBuilder: (context, index) {
+                          final episode = likedEpisodes[index];
+                          return Card(
+                            margin: EdgeInsets.only(bottom: 12),
+                            color: Color(0xFFF3E5F5), // Light purple color
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ListTile(
+                              contentPadding: EdgeInsets.all(12),
+                              leading: CircleAvatar(
+                                radius: 24,
+                                backgroundColor: Colors.white,
+                                child: Text(
+                                  episode.title[0].toUpperCase(),
                                   style: TextStyle(
-                                    color: Colors.black54,
-                                    fontSize: 14,
+                                    color: Theme.of(context).primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
                                   ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              SizedBox(height: 4),
-                              Text(
-                                '${_formatDuration(episode.duration)} • ${_formatDate(episode.publishedAt ?? episode.createdAt)}',
-                                style: TextStyle(
-                                  color: Colors.black54,
-                                  fontSize: 12,
                                 ),
                               ),
-                            ],
-                          ),
-                          trailing: IconButton(
-                            icon: Icon(Icons.play_circle_outline),
-                            color: Theme.of(context).primaryColor,
-                            onPressed: () {
-                              // TODO: Implement episode playback
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-      ),
+                              title: Text(
+                                episode.title,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (episode.description != null && episode.description!.isNotEmpty)
+                                    Text(
+                                      episode.description!,
+                                      style: TextStyle(
+                                        color: Colors.black54,
+                                        fontSize: 14,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '${_formatDuration(episode.duration)} • ${_formatDate(episode.publishedAt ?? episode.createdAt)}',
+                                    style: TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: Icon(Icons.play_circle_outline),
+                                color: Theme.of(context).primaryColor,
+                                onPressed: () {
+                                  final audioPlayerService = Provider.of<AudioPlayerService>(context, listen: false);
+                                  // Convert iTunes Episode to our database Episode format
+                                  final dbEpisode = Episode(
+                                    collectionId: episode.collectionId,
+                                    title: episode.title,
+                                    description: episode.description,
+                                    audioUrl: episode.audioUrl,
+                                    duration: Duration(milliseconds: episode.duration.inMilliseconds),
+                                    createdAt: DateTime.now(),
+                                    updatedAt: DateTime.now(),
+                                  );
+                                  audioPlayerService.playAudio(episode.audioUrl, episode: dbEpisode);
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
     );
   }
 

@@ -650,6 +650,75 @@ class PodcastService {
       throw Exception('Failed to soft delete episode: ${e.toString()}');
     }
   }
+
+  Future<PodcastCollection?> getCollectionById(String collectionId) async {
+    try {
+      final response = await client
+          .from('podcast_collections')
+          .select()
+          .eq('id', collectionId)
+          .maybeSingle();
+      
+      if (response != null) {
+        return PodcastCollection.fromMap(response as Map<String, dynamic>, response['id'] as String);
+      }
+      return null;
+    } catch (e) {
+      print('Error in getCollectionById: $e');
+      throw Exception('Failed to get collection by ID: ${e.toString()}');
+    }
+  }
+
+  Future<List<podcast_model.Podcast>> getTopPodcasts() async {
+    try {
+      final response = await client
+          .from('podcast_collections')
+          .select()
+          .order('rating', ascending: false)
+          .limit(50);
+      
+      return response.map((data) => podcast_model.Podcast.fromMap(data as Map<String, dynamic>)).toList();
+    } catch (e) {
+      print('Error in getTopPodcasts: $e');
+      throw Exception('Failed to get top podcasts: ${e.toString()}');
+    }
+  }
+
+  Future<List<podcast_model.Podcast>> searchPodcasts(String query) async {
+    try {
+      final response = await client
+          .from('podcast_collections')
+          .select()
+          .or('title.ilike.%$query%,description.ilike.%$query%')
+          .order('rating', ascending: false);
+      
+      return response.map((data) => podcast_model.Podcast.fromMap(data as Map<String, dynamic>)).toList();
+    } catch (e) {
+      print('Error in searchPodcasts: $e');
+      throw Exception('Failed to search podcasts: ${e.toString()}');
+    }
+  }
+
+  Future<List<podcast_model.Podcast>> getLikedPodcasts() async {
+    try {
+      final user = await client.auth.getUser();
+      if (user == null || user.user?.id == null) {
+        throw Exception('User not authenticated or missing user ID');
+      }
+
+      final userId = user.user!.id; // Now we know it's non-null
+      final response = await client
+          .from('likes')
+          .select('podcast_collections(*)')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+      
+      return response.map((data) => podcast_model.Podcast.fromMap(data['podcast_collections'] as Map<String, dynamic>)).toList();
+    } catch (e) {
+      print('Error in getLikedPodcasts: $e');
+      throw Exception('Failed to get liked podcasts: ${e.toString()}');
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////

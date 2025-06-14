@@ -23,7 +23,6 @@ class PodcastDetailsScreen extends StatefulWidget {
 
 class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
   final PodcastService _podcastService = PodcastService();
-  final AudioPlayer _audioPlayer = AudioPlayer();
   List<episode_model.Episode> _episodes = [];
   bool _isLoading = true;
   String? _error;
@@ -45,7 +44,6 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -78,16 +76,17 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
         if (audioPlayerService.isPlaying) {
           audioPlayerService.pauseAudio();
         } else {
-          audioPlayerService.playAudio(episode.audioUrl);
+          audioPlayerService.playAudio(episode.audioUrl, episode: episode);
         }
         return;
       }
 
-      // If a different episode is selected, play it
-      await audioPlayerService.playAudio(episode.audioUrl);
+      // If a different episode is selected, play it and navigate to PlayScreen
+      await audioPlayerService.playAudio(episode.audioUrl, episode: episode);
       setState(() => _currentEpisodeIndex = index);
 
-      // Navigate to PlayScreen
+      // Always navigate to PlayScreen
+      if (!mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -415,6 +414,9 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                                   child: LayoutBuilder(
                                     builder: (context, constraints) {
                                       final audioPlayerService = Provider.of<AudioPlayerService>(context);
+                                      if (!audioPlayerService.isInitialized) {
+                                        return Center(child: CircularProgressIndicator());
+                                      }
                                       final isCurrentEpisode = _currentEpisodeIndex == index;
                                       final isPlaying = isCurrentEpisode && audioPlayerService.isPlaying;
                                       

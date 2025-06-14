@@ -3,8 +3,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class CategoryDetectionService {
-  final String witAiToken = dotenv.env['WIT_AI_TOKEN'] ?? '';
-  final String huggingFaceToken = dotenv.env['HUGGINGFACE_TOKEN'] ?? '';
+  Future<String> get witAiToken async {
+    await dotenv.load();
+    return dotenv.env['WIT_AI_TOKEN'] ?? '';
+  }
+
+  Future<String> get huggingFaceToken async {
+    await dotenv.load();
+    return dotenv.env['HUGGINGFACE_TOKEN'] ?? '';
+  }
 
   // Test method to verify token loading
   Future<bool> testWitAiToken() async {
@@ -13,25 +20,22 @@ class CategoryDetectionService {
       print('1. Checking if .env file is loaded...');
       print('All environment variables: ${dotenv.env}');
       print('2. Checking token value...');
-      print('Token value: $witAiToken');
-      
-      if (witAiToken.isEmpty) {
+      final token = await witAiToken;
+      print('Token value: $token');
+      if (token.isEmpty) {
         print('ERROR: Token is empty! Make sure your .env file exists and contains WIT_AI_TOKEN');
         return false;
       }
-
       print('3. Making API test call...');
       final response = await http.get(
         Uri.parse('https://api.wit.ai/message?q=test'),
         headers: {
-          'Authorization': 'Bearer $witAiToken',
+          'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
-
       print('4. API Response Status: ${response.statusCode}');
       print('5. API Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         print('SUCCESS: Token is valid! API connection successful.');
         return true;
@@ -49,31 +53,27 @@ class CategoryDetectionService {
   Future<String> transcribeAudio(String audioUrl) async {
     try {
       print('Starting audio transcription...');
-      
+      final token = await witAiToken;
       // Download the audio file
       final response = await http.get(Uri.parse(audioUrl));
       if (response.statusCode != 200) {
         throw Exception('Failed to download audio file');
       }
-
       print('Audio file downloaded, sending to Wit.ai...');
-      
       // Call Wit.ai API for speech recognition
       final speechResponse = await http.post(
         Uri.parse('https://api.wit.ai/speech'),
         headers: {
-          'Authorization': 'Bearer $witAiToken',
+          'Authorization': 'Bearer $token',
           'Content-Type': 'audio/wav',
         },
         body: response.bodyBytes,
       );
-
       if (speechResponse.statusCode != 200) {
         print('Speech recognition failed with status: ${speechResponse.statusCode}');
         print('Response: ${speechResponse.body}');
         throw Exception('Speech recognition failed');
       }
-
       final transcript = jsonDecode(speechResponse.body)['text'];
       print('Transcription successful!');
       return transcript;
@@ -86,12 +86,12 @@ class CategoryDetectionService {
   Future<List<String>> detectCategories(String text) async {
     try {
       print('Starting category detection...');
-      
+      final token = await huggingFaceToken;
       // Call Hugging Face API for text classification
       final response = await http.post(
         Uri.parse('https://api-inference.huggingface.co/models/facebook/bart-large-mnli'),
         headers: {
-          'Authorization': 'Bearer $huggingFaceToken',
+          'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
@@ -108,21 +108,17 @@ class CategoryDetectionService {
           }
         }),
       );
-
       if (response.statusCode != 200) {
         print('Category detection failed with status: ${response.statusCode}');
         print('Response: ${response.body}');
         throw Exception('Category detection failed');
       }
-
       final result = jsonDecode(response.body);
       final scores = result['scores'] as List;
       final labels = result['labels'] as List;
-
       // Get top 3 categories
       final topIndices = List<int>.generate(scores.length, (i) => i)
         ..sort((a, b) => scores[b].compareTo(scores[a]));
-      
       final categories = topIndices.take(3).map((i) => labels[i].toString()).toList();
       print('Categories detected: $categories');
       return categories;
@@ -135,15 +131,12 @@ class CategoryDetectionService {
   Future<List<String>> analyzePodcast(String audioUrl) async {
     try {
       print('Starting podcast analysis...');
-      
       // First, transcribe the audio
       final transcript = await transcribeAudio(audioUrl);
       print('Transcription completed. Length: ${transcript.length} characters');
-      
       // Then, detect categories from the transcript
       final categories = await detectCategories(transcript);
       print('Analysis completed. Categories: $categories');
-      
       return categories;
     } catch (e) {
       print('Error in podcast analysis: $e');
@@ -158,18 +151,17 @@ class CategoryDetectionService {
       print('1. Checking if .env file is loaded...');
       print('All environment variables: ${dotenv.env}');
       print('2. Checking token value...');
-      print('Token value: $huggingFaceToken');
-      
-      if (huggingFaceToken.isEmpty) {
+      final token = await huggingFaceToken;
+      print('Token value: $token');
+      if (token.isEmpty) {
         print('ERROR: Token is empty! Make sure your .env file exists and contains HUGGINGFACE_TOKEN');
         return false;
       }
-
       print('3. Making API test call...');
       final response = await http.post(
         Uri.parse('https://api-inference.huggingface.co/models/facebook/bart-large-mnli'),
         headers: {
-          'Authorization': 'Bearer $huggingFaceToken',
+          'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
@@ -180,10 +172,8 @@ class CategoryDetectionService {
           }
         }),
       );
-
       print('4. API Response Status: ${response.statusCode}');
       print('5. API Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         print('SUCCESS: Token is valid! API connection successful.');
         return true;
