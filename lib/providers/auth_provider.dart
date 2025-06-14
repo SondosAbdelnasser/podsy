@@ -13,10 +13,51 @@ class AuthProvider with ChangeNotifier {
   final UserService _userService = UserService();
 
   UserModel? _user;
+  bool _isInitialized = false;
 
   UserModel? get currentUser => _user;
   bool get isLoggedIn => _user != null;
   bool get is_admin => _user?.isAdmin ?? false;
+  bool get isInitialized => _isInitialized;
+
+  AuthProvider() {
+    _initializeAuthState();
+  }
+
+  Future<void> _initializeAuthState() async {
+    try {
+      // Check for existing session
+      final currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        final fetchedUser = await _userService.getUserById(currentUser.uid);
+        if (fetchedUser != null) {
+          _user = fetchedUser;
+          notifyListeners();
+        }
+      }
+
+      // Listen to auth state changes
+      _auth.authStateChanges().listen((User? firebaseUser) async {
+        if (firebaseUser != null) {
+          final fetchedUser = await _userService.getUserById(firebaseUser.uid);
+          if (fetchedUser != null) {
+            _user = fetchedUser;
+            notifyListeners();
+          }
+        } else {
+          _user = null;
+          notifyListeners();
+        }
+      });
+
+      _isInitialized = true;
+      notifyListeners();
+    } catch (e) {
+      print('Error initializing auth state: $e');
+      _isInitialized = true;
+      notifyListeners();
+    }
+  }
 
   Future<void> signUp(String email, String password) async {
     try {
