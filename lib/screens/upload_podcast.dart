@@ -93,8 +93,12 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
       final episodes = await _podcastService.getCollectionEpisodes(widget.podcastId);
       if (episodes.isNotEmpty) {
         final latestEpisode = episodes.first;
-        // Trigger categorization
-        await _podcastService.categorizeEpisode(latestEpisode.id!);
+        // Try to categorize but don't show error if it fails
+        try {
+          await _podcastService.categorizeEpisode(latestEpisode.id!);
+        } catch (e) {
+          print('Category detection failed but episode was uploaded successfully: $e');
+        }
       }
 
       ScaffoldMessenger.of(context).showSnackBar(

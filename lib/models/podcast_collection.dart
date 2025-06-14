@@ -6,6 +6,7 @@ class PodcastCollection {
   final String? imageUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int episodeCount;
 
   PodcastCollection({
     required this.id,
@@ -15,6 +16,7 @@ class PodcastCollection {
     this.imageUrl,
     required this.createdAt,
     required this.updatedAt,
+    this.episodeCount = 0,
   });
 
   factory PodcastCollection.fromMap(Map<String, dynamic> data, String documentId) {
@@ -26,6 +28,7 @@ class PodcastCollection {
       imageUrl: data['image_url'],
       createdAt: DateTime.parse(data['created_at']),
       updatedAt: DateTime.parse(data['updated_at']),
+      episodeCount: data['episode_count'] ?? 0,
     );
   }
 
@@ -37,6 +40,7 @@ class PodcastCollection {
       'image_url': imageUrl,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'episode_count': episodeCount,
     };
   }
 } 

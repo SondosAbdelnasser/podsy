@@ -22,7 +22,7 @@ class PodcastCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: SizedBox(
-        height: 220, // Reduced height for the entire card
+        height: 280, // Fixed height for the entire card
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -31,7 +31,7 @@ class PodcastCard extends StatelessWidget {
             children: [
               // Podcast Cover Image
               SizedBox(
-                height: 140, // Reduced height for the image section
+                height: 180, // Fixed height for the image section
                 child: ClipRRect(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
                   child: Container(

@@ -163,7 +163,7 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      floatingActionButton: _episodes.isNotEmpty ? FloatingActionButton(
+      floatingActionButton: _episodes.isNotEmpty && widget.podcast.userId == _currentUserId ? FloatingActionButton(
         onPressed: () async {
           await Navigator.push(
             context,
@@ -357,33 +357,36 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  'Upload an episode',
+                                  widget.podcast.userId == _currentUserId 
+                                    ? 'Upload an episode'
+                                    : 'This podcast has no episodes yet',
                                   style: TextStyle(
                                     color: Colors.grey[600],
                                     fontSize: 16,
                                   ),
                                 ),
                                 SizedBox(height: 24),
-                                ElevatedButton.icon(
-                                  onPressed: () async {
-                                    await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => UploadEpisodeScreen(
-                                          podcastId: widget.podcast.id,
-                                          podcastTitle: widget.podcast.title,
+                                if (widget.podcast.userId == _currentUserId)
+                                  ElevatedButton.icon(
+                                    onPressed: () async {
+                                      await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => UploadEpisodeScreen(
+                                            podcastId: widget.podcast.id,
+                                            podcastTitle: widget.podcast.title,
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                    _loadEpisodes();
-                                  },
-                                  icon: Icon(Icons.add),
-                                  label: Text('Upload Episode'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Theme.of(context).primaryColor,
-                                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                      );
+                                      _loadEpisodes();
+                                    },
+                                    icon: Icon(Icons.add),
+                                    label: Text('Upload Episode'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Theme.of(context).primaryColor,
+                                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                    ),
                                   ),
-                                ),
                               ],
                             ),
                           ),

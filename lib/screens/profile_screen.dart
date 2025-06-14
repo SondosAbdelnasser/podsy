@@ -5,6 +5,7 @@ import '../services/podcast_service.dart';
 import '../models/podcast_collection.dart';
 import 'podcast_details_screen.dart';
 import '../models/podcast.dart';
+import 'follow_requests_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -16,6 +17,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   List<PodcastCollection> _podcasts = [];
   String? _error;
+  int _followersCount = 0;
+  int _followingCount = 0;
 
   @override
   void initState() {
@@ -38,8 +41,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       final podcasts = await _podcastService.getUserCollections(currentUser.id);
+      final followersCount = await _podcastService.getFollowersCount(currentUser.id);
+      final followingCount = await _podcastService.getFollowingCount(currentUser.id);
       setState(() {
         _podcasts = podcasts;
+        _followersCount = followersCount;
+        _followingCount = followingCount;
         _isLoading = false;
       });
     } catch (e) {
@@ -113,6 +120,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
 
+            // Action buttons (Follow Requests & Create Podcast)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        GestureDetector(
+                          onTap: _showFollowersList,
+                          child: Column(
+                            children: [
+                              Text(
+                                _followersCount.toString(),
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Text(
+                                'Followers',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: _showFollowingList,
+                          child: Column(
+                            children: [
+                              Text(
+                                _followingCount.toString(),
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Text(
+                                'Following',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FollowRequestsScreen(),
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.person_add),
+                          label: Text('Follow Requests'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            await Navigator.pushNamed(context, '/createPodcast');
+                            _loadPodcasts();
+                          },
+                          icon: Icon(Icons.add),
+                          label: Text('Create Podcast'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             // My Podcasts Section
             SliverToBoxAdapter(
               child: Padding(
@@ -127,13 +226,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.add, color: Theme.of(context).primaryColor),
-                      onPressed: () async {
-                        await Navigator.pushNamed(context, '/createPodcast');
-                        _loadPodcasts();
-                      },
                     ),
                   ],
                 ),
@@ -202,21 +294,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       fontSize: 16,
                                     ),
                                   ),
-                                  SizedBox(height: 24),
-                                  ElevatedButton.icon(
-                                    onPressed: () async {
-                                      await Navigator.pushNamed(
-                                          context, '/createPodcast');
-                                      _loadPodcasts();
-                                    },
-                                    icon: Icon(Icons.add),
-                                    label: Text('Create Podcast'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Theme.of(context).primaryColor,
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 24, vertical: 12),
-                                    ),
-                                  ),
                                 ],
                               ),
                             ),
@@ -224,38 +301,176 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         : SliverList(
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
-                                final podcast = _podcasts[index];
-                                return PodcastCard(
-                                  podcast: podcast,
-                                  onTap: () {
-                                    final podcastModel = Podcast(
-                                      id: podcast.id,
-                                      title: podcast.title,
-                                      author: 'User', // Default author
-                                      description: podcast.description ?? '',
-                                      imageUrl: '', // Default empty image
-                                      feedUrl: '', // Default empty feed
-                                      episodes: [], // Will be loaded in details screen
-                                      category: 'Personal', // Default category
-                                      rating: 0.0, // Default rating
-                                      episodeCount: 0, // Will be updated in details screen
-                                    );
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            PodcastDetailsScreen(podcast: podcastModel),
+                                final podcastCollection = _podcasts[index];
+                                final podcastModel = Podcast(
+                                  id: podcastCollection.id,
+                                  title: podcastCollection.title,
+                                  author: 'You',
+                                  description: podcastCollection.description ?? '',
+                                  imageUrl: podcastCollection.imageUrl ?? '',
+                                  feedUrl: '',
+                                  episodes: [],
+                                  category: 'Personal',
+                                  rating: 0.0,
+                                  episodeCount: podcastCollection.episodeCount,
+                                  userId: podcastCollection.userId,
+                                );
+                                return Card(
+                                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => PodcastDetailsScreen(
+                                            podcast: podcastModel,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: podcastCollection.imageUrl != null && podcastCollection.imageUrl!.isNotEmpty
+                                                ? Image.network(
+                                                    podcastCollection.imageUrl!,
+                                                    width: 80,
+                                                    height: 80,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                : Container(
+                                                    width: 80,
+                                                    height: 80,
+                                                    color: Colors.grey[300],
+                                                    child: Icon(
+                                                      Icons.mic,
+                                                      size: 40,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                  ),
+                                          ),
+                                          SizedBox(width: 16),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  podcastCollection.title,
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                    color: Colors.black,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                SizedBox(height: 4),
+                                                Text(
+                                                  podcastCollection.description ?? 'No description',
+                                                  style: TextStyle(
+                                                    color: Colors.grey[600],
+                                                    fontSize: 14,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                SizedBox(height: 8),
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.headphones,
+                                                      size: 14,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                    SizedBox(width: 4),
+                                                    Text(
+                                                      '${podcastCollection.episodeCount} Episodes',
+                                                      style: TextStyle(
+                                                        color: Colors.grey[600],
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.delete_outline, color: Colors.red),
+                                            onPressed: () => _showDeleteConfirmationDialog(podcastCollection.id, podcastCollection.title),
+                                          ),
+                                        ],
                                       ),
-                                    ).then((_) => _loadPodcasts());
-                                  },
+                                    ),
+                                  ),
                                 );
                               },
                               childCount: _podcasts.length,
-                ),
-            ),
+                            ),
+                          ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showFollowersList() {
+    // Implement navigation or dialog for followers list
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Followers list coming soon')),
+    );
+  }
+
+  void _showFollowingList() {
+    // Implement navigation or dialog for following list
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Following list coming soon')),
+    );
+  }
+
+  void _showDeleteConfirmationDialog(String id, String title) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Podcast'),
+          content: Text('Are you sure you want to delete "$title"?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                try {
+                  await _podcastService.softDeletePodcast(id);
+                  _loadPodcasts(); // Refresh the list
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Podcast "$title" deleted.')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete podcast: ${e.toString()}')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
