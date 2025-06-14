@@ -316,6 +316,7 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                                 fontSize: 16,
                               ),
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                             ),
                             Text(
                               '(MP3, WAV, etc.)',
@@ -323,6 +324,8 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                                 color: Colors.grey[500],
                                 fontSize: 14,
 =======
+=======
+>>>>>>> Stashed changes
                               const SizedBox(height: 8),
                               Text(
                                 'Tap to select audio file',
@@ -338,8 +341,11 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                 ),
               ),
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
               SizedBox(height: 32),
 =======
+=======
+>>>>>>> Stashed changes
               const SizedBox(height: 16),
 
               // Transcribe Button
@@ -356,12 +362,16 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                 ),
 
               const SizedBox(height: 24),
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
               // Upload Button
               ElevatedButton(
                 onPressed: _isLoading ? null : _uploadEpisode,
                 style: ElevatedButton.styleFrom(
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
                   backgroundColor: Theme.of(context).primaryColor,
                   padding: EdgeInsets.symmetric(vertical: 16),
@@ -380,6 +390,8 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                         ),
                       ),
 =======
+=======
+>>>>>>> Stashed changes
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: Theme.of(context).primaryColor,
                   foregroundColor: Colors.white,
@@ -394,6 +406,9 @@ class _UploadEpisodeScreenState extends State<UploadEpisodeScreen> {
                         ),
                       )
                     : Text('Upload Episode'),
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
               ),
             ],

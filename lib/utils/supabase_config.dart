@@ -1,6 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import 'package:firebase_auth/firebase_auth.dart';
+=======
+import 'package:flutter/foundation.dart';
+>>>>>>> Stashed changes
 =======
 import 'package:flutter/foundation.dart';
 >>>>>>> Stashed changes

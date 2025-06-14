@@ -202,8 +202,11 @@ class PodcastCard extends StatelessWidget {
                     ],
                   ),
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 ),
 =======
+=======
+>>>>>>> Stashed changes
                   const SizedBox(height: 2),
                   Row(
                     children: [

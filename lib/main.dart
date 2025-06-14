@@ -4,6 +4,7 @@ import 'package:podsy/screens/upload_podcast.dart';
 import 'package:podsy/widgets/auth_form.dart';
 import 'package:provider/provider.dart';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
@@ -12,6 +13,8 @@ import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';   
 =======
+=======
+>>>>>>> Stashed changes
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
@@ -42,6 +45,7 @@ import 'models/podcast.dart';
 import 'screens/podcast_details_screen.dart';
 
 void main() async {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -136,6 +140,19 @@ class _MyAppState extends State<MyApp> {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
+=======
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    // Load environment variables
+    await dotenv.load(fileName: ".env");
+
+    // Initialize Firebase
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+>>>>>>> Stashed changes
     // Initialize Supabase using the config from supabase_config.dart
     await SupabaseConfig.initialize();
 

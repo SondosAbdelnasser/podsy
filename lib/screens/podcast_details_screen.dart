@@ -6,10 +6,13 @@ import 'package:just_audio/just_audio.dart';
 import 'upload_podcast.dart';
 import '../screens/play_screen.dart';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import 'package:provider/provider.dart';
 import '../services/audio_player_service.dart';
 import '../providers/auth_provider.dart';
 =======
+=======
+>>>>>>> Stashed changes
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/embedding_service.dart';
 import '../utils/supabase_config.dart';
