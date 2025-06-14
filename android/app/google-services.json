@@ -9,10 +9,62 @@
       "client_info": {
         "mobilesdk_app_id": "1:554265067111:android:ff2209b087817f07379ec2",
         "android_client_info": {
+          "package_name": "com.example.flutter_application_6"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "554265067111-6gposkv1jg8o7lh8rk7m3036n3s79bst.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flutter_application_6",
+            "certificate_hash": "fb0e03ba3c51bcc0e15b02cc553bd2ce936b3aaf"
+          }
+        },
+        {
+          "client_id": "554265067111-m12s5d59rfoml99sfjeaub8h2d068j2u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoi-5H3UwPTQE0CdijJQhQpnfd-AFeeMc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "554265067111-m12s5d59rfoml99sfjeaub8h2d068j2u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "554265067111-2e1i7hltnbklek2ugi5tsmilfrhk2rlo.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterApplication6"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:554265067111:android:60dee13244d43fdc379ec2",
+        "android_client_info": {
           "package_name": "com.example.podsy"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "554265067111-26npi4affcouli6nc33h3sk72k1it2ff.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.podsy",
+            "certificate_hash": "fb0e03ba3c51bcc0e15b02cc553bd2ce936b3aaf"
+          }
+        },
         {
           "client_id": "554265067111-m12s5d59rfoml99sfjeaub8h2d068j2u.apps.googleusercontent.com",
           "client_type": 3
