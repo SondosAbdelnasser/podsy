@@ -51,7 +51,7 @@ void main() async {
   runApp(    MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => local_auth.AuthProvider()),
-        ChangeNotifierProvider(create: (context) => AudioPlayerService()),
+        ChangeNotifierProvider.value(value: AudioPlayerService()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(
           create: (context) {

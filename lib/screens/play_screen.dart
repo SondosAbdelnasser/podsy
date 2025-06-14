@@ -57,6 +57,15 @@ class _PlayScreenState extends State<PlayScreen> {
     final audioPlayerService = Provider.of<AudioPlayerService>(context);
     final likeService = Provider.of<LikeService>(context);
 
+    if (!audioPlayerService.isInitialized) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.episode.title),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.episode.title),

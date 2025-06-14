@@ -9,6 +9,7 @@ import '../widgets/episode_tile.dart';
 import 'profile_screen.dart';
 import 'podcast_details_screen.dart';
 import 'users_list_page.dart';
+import '../services/audio_player_service.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -485,7 +486,8 @@ class _HomeScreenState extends State<Home> {
                                           icon: Icon(Icons.play_circle_outline),
                                           color: Theme.of(context).primaryColor,
                                           onPressed: () {
-                                            // TODO: Implement episode playback
+                                            final audioPlayerService = Provider.of<AudioPlayerService>(context, listen: false);
+                                            audioPlayerService.playAudio(episode.audioUrl);
                                           },
                                         ),
                                         onTap: () {

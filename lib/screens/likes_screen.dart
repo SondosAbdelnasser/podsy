@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../models/episode.dart';
 import '../widgets/episode_card.dart';
+import '../services/audio_player_service.dart';
 
 class LikesScreen extends StatefulWidget {
   @override
@@ -212,7 +213,8 @@ class _LikesScreenState extends State<LikesScreen> {
                             icon: Icon(Icons.play_circle_outline),
                             color: Theme.of(context).primaryColor,
                             onPressed: () {
-                              // TODO: Implement episode playback
+                              final audioPlayerService = Provider.of<AudioPlayerService>(context, listen: false);
+                              audioPlayerService.playAudio(episode.audioUrl);
                             },
                           ),
                         ),

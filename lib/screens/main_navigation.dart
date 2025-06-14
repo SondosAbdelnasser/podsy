@@ -36,11 +36,6 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
-      floatingActionButton: FloatingActionButton(
-        onPressed: _testWitAiToken,
-        child: Icon(Icons.api),
-        tooltip: 'Test Wit.ai Token',
-      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [

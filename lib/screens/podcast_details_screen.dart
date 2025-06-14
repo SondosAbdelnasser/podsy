@@ -23,7 +23,6 @@ class PodcastDetailsScreen extends StatefulWidget {
 
 class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
   final PodcastService _podcastService = PodcastService();
-  final AudioPlayer _audioPlayer = AudioPlayer();
   List<episode_model.Episode> _episodes = [];
   bool _isLoading = true;
   String? _error;
@@ -45,7 +44,6 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -415,6 +413,9 @@ class _PodcastDetailsScreenState extends State<PodcastDetailsScreen> {
                                   child: LayoutBuilder(
                                     builder: (context, constraints) {
                                       final audioPlayerService = Provider.of<AudioPlayerService>(context);
+                                      if (!audioPlayerService.isInitialized) {
+                                        return Center(child: CircularProgressIndicator());
+                                      }
                                       final isCurrentEpisode = _currentEpisodeIndex == index;
                                       final isPlaying = isCurrentEpisode && audioPlayerService.isPlaying;
                                       
