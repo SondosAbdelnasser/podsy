@@ -110,17 +110,17 @@ class _MyAppState extends State<MyApp> {
               );
             },
           },
+          // onGenerateRoute: (settings) {
+          //   if (settings.name == '/podcast-details') {
+          //     final podcast = settings.arguments as Podcast; // Cast the argument to Podcast
+          //     return MaterialPageRoute(
+          //       builder: (context) => PodcastDetailsScreen(podcast: podcast),
+          //     );
+          //   }
+          //   // Handle other routes if needed, or return null for unknown routes
+          //   return null;
+          // },
         );
-      },
-      onGenerateRoute: (settings) {
-        if (settings.name == '/podcast-details') {
-          final podcast = settings.arguments as Podcast; // Cast the argument to Podcast
-          return MaterialPageRoute(
-            builder: (context) => PodcastDetailsScreen(podcast: podcast),
-          );
-        }
-        // Handle other routes if needed, or return null for unknown routes
-        return null;
       },
     );
   }
