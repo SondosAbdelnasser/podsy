@@ -127,6 +127,7 @@ class PodcastService {
           .from('podcast_collections')
           .select()
           .eq('user_id', userId)
+          .not('created_at', 'is', null)
           .order('created_at', ascending: false);
       
       return (response as List)
@@ -648,6 +649,32 @@ class PodcastService {
           .eq('id', episodeId);
     } catch (e) {
       throw Exception('Failed to soft delete episode: ${e.toString()}');
+    }
+  }
+
+  Future<int> getFollowersCount(String userId) async {
+    try {
+      final response = await client
+          .from('follows')
+          .select()
+          .eq('followed_id', userId)
+          .eq('status', 'accepted');
+      return response.length;
+    } catch (e) {
+      throw Exception('Failed to get followers count: ${e.toString()}');
+    }
+  }
+
+  Future<int> getFollowingCount(String userId) async {
+    try {
+      final response = await client
+          .from('follows')
+          .select()
+          .eq('follower_id', userId)
+          .eq('status', 'accepted');
+      return response.length;
+    } catch (e) {
+      throw Exception('Failed to get following count: ${e.toString()}');
     }
   }
 

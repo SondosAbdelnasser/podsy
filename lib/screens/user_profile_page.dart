@@ -6,6 +6,7 @@ import '../models/episode.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/podcast.dart' as podcast_model;
 import '../screens/podcast_details_screen.dart';
+import '../services/follow_service.dart';
 
 class UserProfilePage extends StatefulWidget {
   final String userId;
@@ -23,7 +24,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Map<String, List<Episode>> _episodesByCollection = {};
   int _followersCount = 0;
   int _followingCount = 0;
+  final FollowService _followService = FollowService();
   bool _isFollowing = false;
+  bool _hasPendingRequest = false;
   bool _isLoading = true;
 
   @override
@@ -68,25 +71,22 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final followersResponse = await _supabase
           .from('follows')
           .select()
-          .eq('followed_id', widget.userId);
+          .eq('followed_id', widget.userId)
+          .eq('status', 'accepted');
       _followersCount = followersResponse.length;
 
       final followingResponse = await _supabase
           .from('follows')
           .select()
-          .eq('follower_id', widget.userId);
+          .eq('follower_id', widget.userId)
+          .eq('status', 'accepted');
       _followingCount = followingResponse.length;
 
-      // Check if current user is following
+      // Check if current user is following or has pending request
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        final isFollowingResponse = await _supabase
-            .from('follows')
-            .select()
-            .eq('follower_id', currentUser.uid)
-            .eq('followed_id', widget.userId)
-            .maybeSingle();
-        _isFollowing = isFollowingResponse != null;
+        _isFollowing = await _followService.isFollowing(currentUser.uid, widget.userId);
+        _hasPendingRequest = await _followService.hasPendingRequest(currentUser.uid, widget.userId);
       }
 
       setState(() => _isLoading = false);
@@ -101,11 +101,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Future<void> _toggleFollow() async {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
-      print('Current user: [200m${currentUser?.uid}[0m'); // Debug log
-      print('Current user email: ${currentUser?.email}'); // Debug log
-      print('Current user metadata: ${currentUser?.metadata}'); // Debug log
       if (currentUser == null) {
-        print('No user is currently signed in'); // Debug log
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please login to follow users')),
         );
@@ -114,7 +110,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
       // Don't allow following yourself
       if (currentUser.uid == widget.userId) {
-        print('Attempted to follow self'); // Debug log
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('You cannot follow yourself')),
         );
@@ -123,35 +118,36 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
       if (_isFollowing) {
         // Unfollow
-        print('Attempting to unfollow user: ${widget.userId}'); // Debug log
-        await _supabase
-            .from('follows')
-            .delete()
-            .match({
-              'follower_id': currentUser.uid,
-              'followed_id': widget.userId,
-            });
+        await _followService.rejectFollowRequest(currentUser.uid);
         setState(() {
           _followersCount--;
           _isFollowing = false;
         });
-      } else {
-        // Follow
-        print('Attempting to follow user: ${widget.userId}'); // Debug log
-        await _supabase.from('follows').insert({
-          'follower_id': currentUser.uid,
-          'followed_id': widget.userId,
-          'created_at': DateTime.now().toIso8601String(),
-        });
+      } else if (_hasPendingRequest) {
+        // Cancel pending request
+        await _followService.rejectFollowRequest(currentUser.uid);
         setState(() {
-          _followersCount++;
-          _isFollowing = true;
+          _hasPendingRequest = false;
         });
+      } else {
+        // Send follow request
+        await _followService.sendFollowRequest(currentUser.uid, widget.userId);
+        setState(() {
+          _hasPendingRequest = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Follow request sent')),
+        );
       }
     } catch (e) {
-      print('Error in _toggleFollow: $e'); // Debug log
+      String errorMessage = 'Failed to send follow request.';
+      if (e.toString().contains('A follow request already exists')) {
+        errorMessage = 'You have already sent a follow request to this user.';
+      } else {
+        errorMessage = 'Error: ${e.toString()}';
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        SnackBar(content: Text(errorMessage)),
       );
     }
   }
@@ -310,7 +306,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         ),
                       ),
                       child: Text(
-                        _isFollowing ? 'Unfollow' : 'Follow',
+                        _isFollowing ? 'Unfollow' : (_hasPendingRequest ? 'Cancel Request' : 'Follow'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
