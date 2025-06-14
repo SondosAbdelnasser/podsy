@@ -51,6 +51,7 @@ dependencies:
   just_audio: ^0.9.36  # Added for audio playback
   flutter_dotenv: ^5.1.0
   ffmpeg_kit_flutter_audio: ^6.0.3
+  shared_preferences: ^2.2.2  # Added for theme persistence
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

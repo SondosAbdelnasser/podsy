@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';  
-import '../screens/profile_screen.dart';  
+import '../screens/profile_screen.dart';
+import '../screens/settings_screen.dart';
+
 class CustomDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -34,7 +36,10 @@ class CustomDrawer extends StatelessWidget {
             title: Text('Settings'),
             leading: Icon(Icons.settings),
             onTap: () {
-              //setting hena 
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
+              );
             },
           ),
           ListTile(
