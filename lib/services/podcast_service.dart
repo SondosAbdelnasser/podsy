@@ -11,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'category_detection_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:podsy/models/episode.dart';
 
 class PodcastService {
   final SupabaseClient client = SupabaseConfig.client;
@@ -402,31 +403,20 @@ class PodcastService {
       return (response as List).map((doc) {
         final episodes = (doc['episodes'] as List? ?? [])
             .where((episode) => episode['is_deleted'] == false) // Filter out soft-deleted episodes
-            .map((episode) {
-              // Parse duration string (format: "HH:MM:SS")
-              int durationInSeconds = 0;
-              if (episode['duration'] != null) {
-                final durationStr = episode['duration'] as String;
-                final parts = durationStr.split(':');
-                if (parts.length == 3) {
-                  durationInSeconds = int.parse(parts[0]) * 3600 + // hours
-                                    int.parse(parts[1]) * 60 +    // minutes
-                                    int.parse(parts[2]);          // seconds
-                }
-              }
-
-              return podcast_model.Episode(
-                id: episode['id'] as String? ?? '',
-                title: episode['title'] as String? ?? '',
-                description: episode['description'] as String? ?? '',
-                audioUrl: episode['audio_url'] as String? ?? '',
-                publishDate: episode['published_at'] != null 
-                    ? DateTime.parse(episode['published_at'] as String)
-                    : DateTime.now(),
-                duration: durationInSeconds * 1000, // Convert to milliseconds
-                imageUrl: '', // No image URL in episodes table
-              );
-            })
+            .map((episode) => episode_model.Episode(
+              id: episode['id'] as String? ?? '',
+              collectionId: episode['collection_id'] ?? doc['id'] as String? ?? '',
+              title: episode['title'] as String? ?? '',
+              description: episode['description'] as String?,
+              audioUrl: episode['audio_url'] as String? ?? '',
+              imageUrl: episode['image_url'] as String?,
+              duration: Duration(seconds: _parseDurationString(episode['duration'] ?? '0:00:00')),
+              publishedAt: episode['published_at'] != null ? DateTime.parse(episode['published_at']) : null,
+              createdAt: episode['created_at'] != null ? DateTime.parse(episode['created_at']) : DateTime.now(),
+              updatedAt: episode['updated_at'] != null ? DateTime.parse(episode['updated_at']) : DateTime.now(),
+              categories: List<String>.from(episode['categories'] ?? []),
+              isDeleted: episode['is_deleted'] ?? false,
+            ))
             .toList();
         
         return podcast_model.Podcast(
@@ -463,31 +453,20 @@ class PodcastService {
       
       return (response as List).map((doc) {
         final episodes = (doc['episodes'] as List? ?? [])
-            .map((episode) { // No filtering by is_deleted for admin view of episodes
-              // Parse duration string (format: "HH:MM:SS")
-              int durationInSeconds = 0;
-              if (episode['duration'] != null) {
-                final durationStr = episode['duration'] as String;
-                final parts = durationStr.split(':');
-                if (parts.length == 3) {
-                  durationInSeconds = int.parse(parts[0]) * 3600 + // hours
-                                    int.parse(parts[1]) * 60 +    // minutes
-                                    int.parse(parts[2]);          // seconds
-                }
-              }
-
-              return podcast_model.Episode(
-                id: episode['id'] as String? ?? '',
-                title: episode['title'] as String? ?? '',
-                description: episode['description'] as String? ?? '',
-                audioUrl: episode['audio_url'] as String? ?? '',
-                publishDate: episode['published_at'] != null 
-                    ? DateTime.parse(episode['published_at'] as String)
-                    : DateTime.now(),
-                duration: durationInSeconds * 1000, // Convert to milliseconds
-                imageUrl: '', // No image URL in episodes table
-              );
-            })
+            .map((episode) => episode_model.Episode(
+              id: episode['id'] as String? ?? '',
+              collectionId: episode['collection_id'] ?? doc['id'] as String? ?? '',
+              title: episode['title'] as String? ?? '',
+              description: episode['description'] as String?,
+              audioUrl: episode['audio_url'] as String? ?? '',
+              imageUrl: episode['image_url'] as String?,
+              duration: Duration(seconds: _parseDurationString(episode['duration'] ?? '0:00:00')),
+              publishedAt: episode['published_at'] != null ? DateTime.parse(episode['published_at']) : null,
+              createdAt: episode['created_at'] != null ? DateTime.parse(episode['created_at']) : DateTime.now(),
+              updatedAt: episode['updated_at'] != null ? DateTime.parse(episode['updated_at']) : DateTime.now(),
+              categories: List<String>.from(episode['categories'] ?? []),
+              isDeleted: episode['is_deleted'] ?? false,
+            ))
             .toList();
         
         return podcast_model.Podcast(
@@ -554,17 +533,20 @@ class PodcastService {
       return (podcastsResponse as List).map((doc) {
         final episodes = (doc['episodes'] as List? ?? [])
             .where((episode) => episode['is_deleted'] == false) // Filter out soft-deleted episodes
-            .map((episode) => podcast_model.Episode(
-                  id: episode['id'] as String? ?? '',
-                  title: episode['title'] as String? ?? '',
-                  description: episode['description'] as String? ?? '',
-                  audioUrl: episode['audio_url'] as String? ?? '',
-                  publishDate: episode['published_at'] != null 
-                      ? DateTime.parse(episode['published_at'] as String)
-                      : DateTime.now(),
-                  duration: _parseDurationString(episode['duration'] as String? ?? '00:00:00'),
-                  imageUrl: '', // No image URL in episodes table
-                ))
+            .map((episode) => episode_model.Episode(
+              id: episode['id'] as String? ?? '',
+              collectionId: episode['collection_id'] ?? doc['id'] as String? ?? '',
+              title: episode['title'] as String? ?? '',
+              description: episode['description'] as String?,
+              audioUrl: episode['audio_url'] as String? ?? '',
+              imageUrl: episode['image_url'] as String?,
+              duration: Duration(seconds: _parseDurationString(episode['duration'] ?? '0:00:00')),
+              publishedAt: episode['published_at'] != null ? DateTime.parse(episode['published_at']) : null,
+              createdAt: episode['created_at'] != null ? DateTime.parse(episode['created_at']) : DateTime.now(),
+              updatedAt: episode['updated_at'] != null ? DateTime.parse(episode['updated_at']) : DateTime.now(),
+              categories: List<String>.from(episode['categories'] ?? []),
+              isDeleted: episode['is_deleted'] ?? false,
+            ))
             .toList();
 
         return podcast_model.Podcast(

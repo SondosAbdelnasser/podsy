@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/podcast_card.dart' as widgets;
 import '../models/podcast.dart';
+import '../widgets/episode_card.dart';
+import '../models/episode.dart' as episode_model;
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -10,9 +12,16 @@ class SearchScreen extends StatefulWidget {
   _SearchScreenState createState() => _SearchScreenState();
 }
 
+class SearchResultItem {
+  final Podcast? podcast;
+  final episode_model.Episode? episode;
+  SearchResultItem.podcast(this.podcast) : episode = null;
+  SearchResultItem.episode(this.episode) : podcast = null;
+}
+
 class _SearchScreenState extends State<SearchScreen> {
   final supabase = Supabase.instance.client;
-  List<Podcast> searchResults = [];
+  List<SearchResultItem> searchResults = [];
   bool isLoading = false;
   String searchQuery = '';
 
@@ -52,36 +61,40 @@ class _SearchScreenState extends State<SearchScreen> {
           .eq('is_deleted', false)
           .order('created_at', ascending: false);
 
-      // Combine and deduplicate results
-      final Map<String, Podcast> uniquePodcasts = {};
+      final List<SearchResultItem> results = [];
+      final Set<String> seenPodcastIds = {};
+      final Set<String> seenEpisodeIds = {};
 
       // Process podcast results
       for (var doc in podcastResults) {
         final episodes = (doc['episodes'] as List? ?? [])
             .where((episode) => episode['is_deleted'] == false)
             .map((episode) {
-              // Parse duration string (format: "HH:MM:SS")
               int durationInSeconds = 0;
               if (episode['duration'] != null) {
                 final durationStr = episode['duration'].toString();
                 final parts = durationStr.split(':');
                 if (parts.length == 3) {
-                  durationInSeconds = int.parse(parts[0]) * 3600 + // hours
-                                    int.parse(parts[1]) * 60 +    // minutes
-                                    int.parse(parts[2]);          // seconds
+                  durationInSeconds = int.parse(parts[0]) * 3600 +
+                                    int.parse(parts[1]) * 60 +
+                                    int.parse(parts[2]);
                 }
               }
-
-              return Episode(
+              return episode_model.Episode(
                 id: episode['id'] as String? ?? '',
+                collectionId: episode['collection_id'] ?? '',
                 title: episode['title'] as String? ?? '',
-                description: episode['description'] as String? ?? '',
+                description: episode['description'] as String?,
                 audioUrl: episode['audio_url'] as String? ?? '',
-                publishDate: episode['published_at'] != null 
+                imageUrl: episode['image_url'] as String?,
+                duration: Duration(milliseconds: durationInSeconds * 1000),
+                publishedAt: episode['published_at'] != null
                     ? DateTime.parse(episode['published_at'] as String)
-                    : DateTime.now(),
-                duration: durationInSeconds * 1000, // Convert to milliseconds
-                imageUrl: '', // No image URL in episodes table
+                    : null,
+                createdAt: episode['created_at'] != null ? DateTime.parse(episode['created_at']) : DateTime.now(),
+                updatedAt: episode['updated_at'] != null ? DateTime.parse(episode['updated_at']) : DateTime.now(),
+                categories: List<String>.from(episode['categories'] ?? []),
+                isDeleted: episode['is_deleted'] ?? false,
               );
             })
             .toList();
@@ -89,84 +102,58 @@ class _SearchScreenState extends State<SearchScreen> {
         final podcast = Podcast(
           id: doc['id'] as String? ?? '',
           title: doc['title'] as String? ?? '',
-          author: 'User', // Default author
+          author: 'User',
           description: doc['description'] as String? ?? '',
-          imageUrl: doc['image_url'] as String? ?? '', // Populate imageUrl from 'image_url' field
-          feedUrl: '', // No feed URL in schema
+          imageUrl: doc['image_url'] as String? ?? '',
+          feedUrl: '',
           episodes: episodes,
-          category: 'Personal', // Default category
-          rating: 0.0, // Default rating
+          category: 'Personal',
+          rating: 0.0,
           episodeCount: episodes.length,
         );
-
-        uniquePodcasts[podcast.id] = podcast;
+        if (!seenPodcastIds.contains(podcast.id)) {
+          results.add(SearchResultItem.podcast(podcast));
+          seenPodcastIds.add(podcast.id);
+        }
       }
 
       // Process episode results
       for (var episodeDoc in episodeResults) {
         final podcastDoc = episodeDoc['podcast_collections'];
-        // Parse duration string (format: "HH:MM:SS")
         int durationInSeconds = 0;
         if (episodeDoc['duration'] != null) {
           final durationStr = episodeDoc['duration'].toString();
           final parts = durationStr.split(':');
           if (parts.length == 3) {
-            durationInSeconds = int.parse(parts[0]) * 3600 + // hours
-                              int.parse(parts[1]) * 60 +    // minutes
-                              int.parse(parts[2]);          // seconds
+            durationInSeconds = int.parse(parts[0]) * 3600 +
+                              int.parse(parts[1]) * 60 +
+                              int.parse(parts[2]);
           }
         }
-
-        final episode = Episode(
+        final episode = episode_model.Episode(
           id: episodeDoc['id'] as String? ?? '',
+          collectionId: episodeDoc['collection_id'] ?? '',
           title: episodeDoc['title'] as String? ?? '',
-          description: episodeDoc['description'] as String? ?? '',
+          description: episodeDoc['description'] as String?,
           audioUrl: episodeDoc['audio_url'] as String? ?? '',
-          publishDate: episodeDoc['published_at'] != null 
+          imageUrl: episodeDoc['image_url'] as String?,
+          duration: Duration(milliseconds: durationInSeconds * 1000),
+          publishedAt: episodeDoc['published_at'] != null
               ? DateTime.parse(episodeDoc['published_at'] as String)
-              : DateTime.now(),
-          duration: durationInSeconds * 1000, // Convert to milliseconds
-          imageUrl: '', // No image URL in episodes table
+              : null,
+          createdAt: episodeDoc['created_at'] != null ? DateTime.parse(episodeDoc['created_at']) : DateTime.now(),
+          updatedAt: episodeDoc['updated_at'] != null ? DateTime.parse(episodeDoc['updated_at']) : DateTime.now(),
+          categories: List<String>.from(episodeDoc['categories'] ?? []),
+          isDeleted: episodeDoc['is_deleted'] ?? false,
         );
-
-        final podcast = Podcast(
-          id: podcastDoc['id'] as String? ?? '',
-          title: podcastDoc['title'] as String? ?? '',
-          author: 'User', // Default author
-          description: podcastDoc['description'] as String? ?? '',
-          imageUrl: podcastDoc['image_url'] as String? ?? '', // Populate imageUrl from 'image_url' field
-          feedUrl: '', // No feed URL in schema
-          episodes: [episode],
-          category: 'Personal', // Default category
-          rating: 0.0, // Default rating
-          episodeCount: 1,
-        );
-
-        if (uniquePodcasts.containsKey(podcast.id)) {
-          // Add episode to existing podcast if not already present
-          final existingPodcast = uniquePodcasts[podcast.id]!;
-          if (!existingPodcast.episodes.any((e) => e.id == episode.id)) {
-            final updatedEpisodes = [...existingPodcast.episodes, episode];
-            uniquePodcasts[podcast.id] = Podcast(
-              id: existingPodcast.id,
-              title: existingPodcast.title,
-              author: existingPodcast.author,
-              description: existingPodcast.description,
-              imageUrl: existingPodcast.imageUrl,
-              feedUrl: existingPodcast.feedUrl,
-              episodes: updatedEpisodes,
-              category: existingPodcast.category,
-              rating: existingPodcast.rating,
-              episodeCount: updatedEpisodes.length,
-            );
-          }
-        } else {
-          uniquePodcasts[podcast.id] = podcast;
+        if (!seenEpisodeIds.contains(episode.id)) {
+          results.add(SearchResultItem.episode(episode));
+          seenEpisodeIds.add(episode.id!);
         }
       }
 
       setState(() {
-        searchResults = uniquePodcasts.values.toList();
+        searchResults = results;
         isLoading = false;
       });
     } catch (e) {
@@ -262,16 +249,27 @@ class _SearchScreenState extends State<SearchScreen> {
                   child: Column(
                     children: searchResults.map((result) => Padding(
                       padding: EdgeInsets.only(bottom: 16),
-                      child: widgets.PodcastCard(
-                        podcast: result,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/podcast-details',
-                            arguments: result,
-                          );
-                        },
-                      ),
+                      child: result.podcast != null
+                        ? widgets.PodcastCard(
+                            podcast: result.podcast!,
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                '/podcast-details',
+                                arguments: result.podcast!,
+                              );
+                            },
+                          )
+                        : EpisodeCard(
+                            episode: result.episode!,
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                '/play',
+                                arguments: result.episode!,
+                              );
+                            },
+                          ),
                     )).toList(),
                   ),
                 ),

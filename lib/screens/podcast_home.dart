@@ -11,6 +11,7 @@ import 'podcast_details_screen.dart';
 import 'users_list_page.dart';
 import '../services/audio_player_service.dart';
 import '../models/episode.dart';
+import 'package:podsy/models/episode.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -507,7 +508,7 @@ class _HomeScreenState extends State<Home> {
                                               ),
                                             ),
                                             Text(
-                                              '${_formatDuration(Duration(milliseconds: episode.duration))} • ${_formatDate(episode.publishDate)}',
+                                              '${_formatDuration(episode.duration)} • ${_formatDate(episode.publishedAt)}',
                                               style: TextStyle(
                                                 color: Colors.black54,
                                                 fontSize: 12,
@@ -526,7 +527,7 @@ class _HomeScreenState extends State<Home> {
                                               title: episode.title,
                                               description: episode.description,
                                               audioUrl: episode.audioUrl,
-                                              duration: Duration(milliseconds: episode.duration),
+                                              duration: episode.duration,
                                               createdAt: DateTime.now(),
                                               updatedAt: DateTime.now(),
                                             );
@@ -568,7 +569,10 @@ class _HomeScreenState extends State<Home> {
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime? date) {
+    if (date == null) {
+      return 'Unknown';
+    }
     final now = DateTime.now();
     final difference = now.difference(date);
 
