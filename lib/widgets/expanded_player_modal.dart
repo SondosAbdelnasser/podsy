@@ -144,16 +144,6 @@ class _ExpandedPlayerModalState extends State<ExpandedPlayerModal> {
           'Playing Podcast',
           style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
         ),
-        actions: [
-          LikeButton(
-            isLiked: likeService.isLiked,
-            onPressed: () => likeService.toggleLike(currentEpisode.id!),
-          ),
-          IconButton(
-            icon: const Icon(Icons.share, color: Colors.deepPurple),
-            onPressed: () => _shareEpisode(currentEpisode),
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -229,32 +219,45 @@ class _ExpandedPlayerModalState extends State<ExpandedPlayerModal> {
             const SizedBox(height: 20),
 
             // Playback Controls
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.replay_10, size: 48, color: Colors.deepPurple),
-                  onPressed: audioPlayerService.skipBackward,
-                ),
-                const SizedBox(width: 20),
-                isLoading
-                    ? const CircularProgressIndicator(strokeWidth: 3, valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple))
-                    : IconButton(
-                        icon: Icon(isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled, size: 72, color: Colors.deepPurple),
-                        onPressed: () {
-                          if (isPlaying) {
-                            audioPlayerService.pauseAudio();
-                          } else {
-                            audioPlayerService.playAudio(currentEpisode.audioUrl, episode: currentEpisode);
-                          }
-                        },
-                      ),
-                const SizedBox(width: 20),
-                IconButton(
-                  icon: const Icon(Icons.forward_10, size: 48, color: Colors.deepPurple),
-                  onPressed: audioPlayerService.skipForward,
-                ),
-              ],
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  LikeButton(
+                    isLiked: likeService.isLiked,
+                    onPressed: () => likeService.toggleLike(currentEpisode.id!),
+                  ),
+                  const SizedBox(width: 20),
+                  IconButton(
+                    icon: const Icon(Icons.replay_10, size: 48, color: Colors.deepPurple),
+                    onPressed: audioPlayerService.skipBackward,
+                  ),
+                  const SizedBox(width: 20),
+                  isLoading
+                      ? const CircularProgressIndicator(strokeWidth: 3, valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple))
+                      : IconButton(
+                          icon: Icon(isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled, size: 72, color: Colors.deepPurple),
+                          onPressed: () {
+                            if (isPlaying) {
+                              audioPlayerService.pauseAudio();
+                            } else {
+                              audioPlayerService.playAudio(currentEpisode.audioUrl, episode: currentEpisode);
+                            }
+                          },
+                        ),
+                  const SizedBox(width: 20),
+                  IconButton(
+                    icon: const Icon(Icons.forward_10, size: 48, color: Colors.deepPurple),
+                    onPressed: audioPlayerService.skipForward,
+                  ),
+                  const SizedBox(width: 20),
+                  IconButton(
+                    icon: const Icon(Icons.share, color: Colors.deepPurple),
+                    onPressed: () => _shareEpisode(currentEpisode),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 32),
 
